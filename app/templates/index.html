@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predicción de Consumo Energético</title>
+</head>
+<body>
+    <h1>Predicción de Consumo Energético</h1>
+    <form method="post">
+        Área (m²): <input type="number" name="area" step="0.1"><br>
+        Ocupación (personas): <input type="number" name="people"><br>
+        Día (0=Dom, 6=Sáb): <input type="number" name="day" min="0" max="6"><br>
+        Hora (0-23): <input type="number" name="hour" min="0" max="23"><br>
+        <input type="submit" value="Predecir">
+    </form>
+    {% if prediction %}
+        <h2>Consumo estimado: {{ prediction | round(2) }} kWh</h2>
+    {% endif %}
+</body>
+</html>
