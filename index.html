@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Consumo Energetico</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Predicción de Consumo Energético</h1>
+        <form method = "POST">
+            <label for="area">Area del edificio (m2):</label>
+            <input type="number" id="area" name="area" required>
+
+            <label for="occupancy">Ocupacion (Personas)</label> 
+            <input type="number" id="occupancy" name="occupancy" required>
+
+            <label for="day_of_week">Dia de la semana(0-6):</label>
+            <input type="number" id="day_of_week" name="day_of_week" min="0" max="6" required>
+
+            <label for="hour_of_day">Hora del dia (0-23):</label>
+            <input type="number" id="hour_of_day" name="hour_of_day" min="0" max="23" required>
+
+            <button type="submit">Predecir Consumo</button>
+        </form>
+
+        {% if prediction %}
+        <div class="result">
+            <h2>Resultado:</h2>
+            <p>Consumo Energetico estimado: <strong>{{"%.2f"|format(prediction) }} kwh</strong>strong></p>
+        </div>
+        {% endif %}    
+    </div>
+</body>
+</html>
