@@ -1,19 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Predicción de Consumo Energético</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Predicción de Consumo Energético</h1>
-    <form method="post">
-        Área (m²): <input type="number" name="area" step="0.1"><br>
-        Ocupación (personas): <input type="number" name="people"><br>
-        Día (0=Dom, 6=Sáb): <input type="number" name="day" min="0" max="6"><br>
-        Hora (0-23): <input type="number" name="hour" min="0" max="23"><br>
-        <input type="submit" value="Predecir">
-    </form>
-    {% if prediction %}
-        <h2>Consumo estimado: {{ prediction | round(2) }} kWh</h2>
-    {% endif %}
+    <div class="container">
+        <h1><i class="fas fa-bolt me-2"></i>Predicción de Consumo Energético</h1>
+        <form method="POST" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="area" class="form-label">Área del edificio (m²):</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-building"></i></span>
+                    <input type="number" class="form-control" id="area" name="area" required>
+                    <div class="invalid-feedback">
+                        Por favor ingrese el área del edificio.
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="occupancy" class="form-label">Ocupación (Personas):</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-users"></i></span>
+                    <input type="number" class="form-control" id="occupancy" name="occupancy" required>
+                    <div class="invalid-feedback">
+                        Por favor ingrese la ocupación.
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="day_of_week" class="form-label">Día de la semana (0-6):</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar-day"></i></span>
+                        <input type="number" class="form-control" id="day_of_week" name="day_of_week" min="0" max="6" required>
+                        <div class="invalid-feedback">
+                            Por favor ingrese un día válido (0-6).
+                        </div>
+                    </div>
+                    <small class="text-muted">0 = Lunes, 6 = Domingo</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="hour_of_day" class="form-label">Hora del día (0-23):</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                        <input type="number" class="form-control" id="hour_of_day" name="hour_of_day" min="0" max="23" required>
+                        <div class="invalid-feedback">
+                            Por favor ingrese una hora válida (0-23).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-calculator me-2"></i>Predecir Consumo</button>
+            </div>
+        </form>
+
+        {% if prediction %}
+        <div class="result">
+            <h2><i class="fas fa-chart-line me-2"></i>Resultado:</h2>
+            <p>Consumo Energético estimado: <span class="prediction-value">{{ "%.2f"|format(prediction) }} kWh</span></p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Validación de formulario
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
 </body>
 </html>
