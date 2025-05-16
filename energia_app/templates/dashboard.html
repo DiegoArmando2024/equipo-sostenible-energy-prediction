@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Energético - UDEC</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="https://www.ucundinamarca.edu.co/images/ucundinamarca/logo-ucundinamarca.png" height="40" alt="UDEC">
+                Sistema Predictivo de Consumo Energético
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/predict">Predicción</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <h2>Dashboard de Consumo Energético</h2>
+        <p class="lead">Visualización de patrones y tendencias de consumo energético en el campus.</p>
+        
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Consumo energético total</h5>
+                        <div class="display-4 fw-bold text-primary text-center my-3">458.7 kWh</div>
+                        <p class="text-center">Consumo promedio diario</p>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <div class="text-success">
+                                <i class="bi bi-arrow-down"></i> 12% vs. mes anterior
+                            </div>
+                            <div>
+                                <i class="bi bi-calendar3"></i> Mayo 2025
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Ahorro estimado</h5>
+                        <div class="display-4 fw-bold text-success text-center my-3">$1,240</div>
+                        <p class="text-center">Ahorro mensual proyectado</p>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <div class="text-success">
+                                <i class="bi bi-arrow-up"></i> 8% vs. mes anterior
+                            </div>
+                            <div>
+                                <i class="bi bi-coin"></i> COP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Impacto ambiental</h5>
+                        <div class="display-4 fw-bold text-primary text-center my-3">230 kg</div>
+                        <p class="text-center">Reducción emisiones CO₂</p>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <div class="text-success">
+                                <i class="bi bi-arrow-up"></i> 15% vs. mes anterior
+                            </div>
+                            <div>
+                                <i class="bi bi-tree"></i> Mayo 2025
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Consumo por Hora del Día</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="hourlyChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Consumo por Día de la Semana</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dailyChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Consumo por Edificio</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="buildingChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Recomendaciones Principales</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-1-circle-fill text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Optimización de sistemas HVAC</h6>
+                                    <p class="mb-0 text-muted">Ajustar la temperatura de climatización durante horas no pico puede reducir el consumo hasta en un 15%.</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-2-circle-fill text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Programación de equipos</h6>
+                                    <p class="mb-0 text-muted">Implementar el apagado automático de equipos en áreas desocupadas durante noches y fines de semana.</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-3-circle-fill text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Sensores de presencia</h6>
+                                    <p class="mb-0 text-muted">Instalar sensores de presencia en aulas y oficinas puede reducir el consumo de iluminación hasta en un 30%.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Análisis de Tendencias</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="trendChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Sistema Predictivo de Consumo Energético</h5>
+                    <p>Universidad de Cundinamarca - Sede Chía</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>
+                        Desarrollado por: Diego Armando Guzmán Garzón y Oscar Giovanni Robayo Olaya<br>
+                        Curso de Machine Learning - 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script para las gráficas -->
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</body>
+</html>

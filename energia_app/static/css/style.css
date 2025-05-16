@@ -1,0 +1,131 @@
+/* Personalización de colores principales */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --bg-light: #f8f9fa;
+}
+
+/* Estilos generales */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-light);
+    color: #333;
+}
+
+/* Navbar personalizada */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand img {
+    margin-right: 10px;
+}
+
+/* Tarjetas con sombras suaves */
+.card {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* Elementos de características en la página de inicio */
+.feature-item {
+    background-color: rgba(0, 123, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+.feature-item:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.feature-item i {
+    color: var(--primary-color);
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+/* Formulario de predicción */
+.form-control, .form-select {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Botones */
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Resultado de predicción */
+.display-4 {
+    font-weight: 600;
+}
+
+/* Recomendaciones */
+.list-group-item {
+    padding: 15px;
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item i.bi-check-circle-fill {
+    color: var(--success-color);
+}
+
+/* Dashboard indicators */
+.card .display-4 {
+    font-size: 2.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card .display-4 {
+        font-size: 2rem;
+    }
+}
+
+/* Personalización de la página */
+.lead {
+    font-weight: 300;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+footer {
+    margin-top: 3rem;
+}
