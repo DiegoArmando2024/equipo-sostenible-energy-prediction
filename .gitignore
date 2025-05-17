@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Entorno virtual (pero no ignorar los archivos de despliegue)
+.venv
+venv/
+ENV/
+
+# IDE y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.ipynb_checkpoints
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de base de datos local
+*.sqlite3
+*.db
+
+# Archivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos generados
+node_modules/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+
+# Archivos temporales
+tmp/
+temp/
+
+# Asegurar que los archivos de despliegue no se ignoren
+!Procfile
+!render.yaml
+!wsgi.py
+!requirements.txt
+!runtime.txt
+
+# Ignorar archivos de medios en desarrollo, pero no en producción
+# /media/
+
+# Ignorar archivos generados por el script de análisis
+/*.png
+# Pero permitir imágenes específicas en la carpeta static
+!/energia_app/static/img/*.png
