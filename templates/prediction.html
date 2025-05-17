@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Consumo - UDEC</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/UdeC.jpg') }}" height="40" alt="UDEC">
+                Sistema Predictivo de Consumo Energético
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/predict">Predicción</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-6">
+                <h2>Predicción de Consumo Energético</h2>
+                <p class="lead">Ingrese los parámetros para predecir el consumo energético.</p>
+                
+                <form method="POST" action="/predict" class="mt-4">
+                    <div class="mb-3">
+                        <label for="area" class="form-label">
+                            <i class="bi bi-building"></i> Área del edificio (m²)
+                        </label>
+                        <input type="number" class="form-control" id="area" name="area" min="100" max="10000" step="10"
+                            value="{{ area|default(1000) }}" required>
+                        <div class="form-text">Ingrese el área total del edificio en metros cuadrados.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ocupacion" class="form-label">
+                            <i class="bi bi-people"></i> Nivel de ocupación (personas)
+                        </label>
+                        <input type="number" class="form-control" id="ocupacion" name="ocupacion" min="0" max="1000"
+                            value="{{ ocupacion|default(50) }}" required>
+                        <div class="form-text">Número estimado de personas ocupando el edificio.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dia_semana" class="form-label">
+                            <i class="bi bi-calendar3"></i> Día de la semana
+                        </label>
+                        <select class="form-select" id="dia_semana" name="dia_semana" required>
+                            <option value="0" {% if dia_semana == 0 %}selected{% endif %}>Lunes</option>
+                            <option value="1" {% if dia_semana == 1 %}selected{% endif %}>Martes</option>
+                            <option value="2" {% if dia_semana == 2 %}selected{% endif %}>Miércoles</option>
+                            <option value="3" {% if dia_semana == 3 %}selected{% endif %}>Jueves</option>
+                            <option value="4" {% if dia_semana == 4 %}selected{% endif %}>Viernes</option>
+                            <option value="5" {% if dia_semana == 5 %}selected{% endif %}>Sábado</option>
+                            <option value="6" {% if dia_semana == 6 %}selected{% endif %}>Domingo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="hora_dia" class="form-label">
+                            <i class="bi bi-clock"></i> Hora del día
+                        </label>
+                        <select class="form-select" id="hora_dia" name="hora_dia" required>
+                            {% for hour in range(24) %}
+                                <option value="{{ hour }}" {% if hora_dia == hour %}selected{% endif %}>
+                                    {{ hour }}:00
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Predecir consumo</button>
+                </form>
+            </div>
+            
+            <div class="col-lg-6">
+                {% if prediction is defined %}
+                <div class="card mt-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Resultado de la predicción</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <div class="display-4 fw-bold text-primary">
+                                {{ prediction }} kWh
+                            </div>
+                            <p class="lead">Consumo energético estimado</p>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-building fs-4 me-2 text-primary"></i>
+                                    <div>
+                                        <small class="text-muted">Área del edificio</small>
+                                        <div>{{ area }} m²</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-people fs-4 me-2 text-primary"></i>
+                                    <div>
+                                        <small class="text-muted">Nivel de ocupación</small>
+                                        <div>{{ ocupacion }} personas</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar3 fs-4 me-2 text-primary"></i>
+                                    <div>
+                                        <small class="text-muted">Día de la semana</small>
+                                        <div>
+                                            {% set days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] %}
+                                            {{ days[dia_semana] }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clock fs-4 me-2 text-primary"></i>
+                                    <div>
+                                        <small class="text-muted">Hora del día</small>
+                                        <div>{{ hora_dia }}:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightbulb"></i> Recomendaciones para optimizar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for recommendation in recommendations %}
+                            <li class="list-group-item">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                {{ recommendation }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h4 class="card-title">Cómo funciona</h4>
+                        <p>
+                            Nuestro sistema utiliza un modelo de regresión lineal entrenado con datos históricos
+                            para predecir el consumo energético basado en los parámetros ingresados.
+                        </p>
+                        <p>
+                            Las predicciones consideran los patrones de uso de energía según el día de la semana,
+                            hora del día, área del edificio y nivel de ocupación, proporcionando una estimación
+                            precisa del consumo esperado.
+                        </p>
+                        <p>
+                            Complete el formulario a la izquierda y obtendrá no solo una predicción del consumo,
+                            sino también recomendaciones personalizadas para optimizar el uso de energía.
+                        </p>
+                        <div class="text-center mt-4">
+                            <img src="{{ url_for('static', filename='img/energy_graph.png') }}" class="img-fluid" alt="Gráfico de energía" style="max-width: 300px;">
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Sistema Predictivo de Consumo Energético</h5>
+                    <p>Universidad de Cundinamarca - Sede Chía</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>
+                        Desarrollado por: Oscar Giovanni Robayo Olaya y Diego Armando Guzmán Garzón <br>
+                        Curso de Machine Learning - 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
