@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
 import pandas as pd
 import numpy as np
 import logging
+from werkzeug.utils import secure_filename
 from energia_app.models import Energy_Model, preprocess_data
 from energia_app.utils import generate_synthetic_data, generate_future_scenarios
+from energia_app.utils.data_loader import load_csv_dataset, save_dataset, get_dataset_statistics
 from energia_app.models.user import db, User
 from energia_app.forms import LoginForm, RegistrationForm
 
@@ -24,6 +26,9 @@ app = Flask(__name__,
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-secreta-predeterminada')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///energia_app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'energia_app', 'data')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max-limit
+app.config['ALLOWED_EXTENSIONS'] = {'csv'}
 
 # Inicializar extensiones
 db.init_app(app)
@@ -37,19 +42,40 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+def allowed_file(filename):
+    """Verifica si la extensión del archivo es permitida"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
 # Asegurar que el modelo está entrenado
 def ensure_model_trained():
     model = Energy_Model()
     
-    # Si el modelo no está entrenado, generamos datos sintéticos y lo entrenamos
+    # Ruta de datos predeterminada
+    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'energia_app', 'data')
+    os.makedirs(data_dir, exist_ok=True)
+    data_path = os.path.join(data_dir, 'energy_data.csv')
+    
+    # Si el modelo no está entrenado, comprobamos si existe un dataset
     if not model.trained:
-        logger.info("Modelo no entrenado. Generando datos sintéticos para entrenar...")
-        data = generate_synthetic_data(n_samples=1000)
+        logger.info("Modelo no entrenado. Buscando dataset para entrenar...")
         
-        # Guardar los datos para referencia futura
-        data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'energia_app', 'data')
-        os.makedirs(data_dir, exist_ok=True)
-        data.to_csv(os.path.join(data_dir, 'synthetic_energy_data.csv'), index=False)
+        if os.path.exists(data_path):
+            logger.info(f"Dataset encontrado en {data_path}. Cargando datos...")
+            # Cargar dataset existente
+            try:
+                data = load_csv_dataset(data_path)
+                logger.info(f"Dataset cargado con {len(data)} registros.")
+            except Exception as e:
+                logger.error(f"Error al cargar dataset: {str(e)}. Generando datos sintéticos...")
+                data = generate_synthetic_data(n_samples=1000)
+                data.to_csv(data_path, index=False)
+        else:
+            logger.info("No se encontró dataset. Generando datos sintéticos...")
+            data = generate_synthetic_data(n_samples=1000)
+            # Guardar los datos para referencia futura
+            data.to_csv(data_path, index=False)
         
         # Preprocesar datos
         X, y = preprocess_data(data, training=True)
@@ -210,16 +236,14 @@ def dashboard():
 def get_data():
     """API para obtener datos para las gráficas del dashboard"""
     try:
-        # Asegurar que el modelo está entrenado
-        model = ensure_model_trained()
+        # Ruta al dataset
+        data_path = os.path.join(app.config['UPLOAD_FOLDER'], 'energy_data.csv')
         
-        # Cargar datos (si existen, sino generar nuevos)
-        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                                'energia_app', 'data', 'synthetic_energy_data.csv')
-        
+        # Verificar si existe el dataset
         if os.path.exists(data_path):
-            data = pd.read_csv(data_path)
+            data = load_csv_dataset(data_path, validate=False)
         else:
+            # Si no existe, usar datos sintéticos
             data = generate_synthetic_data(n_samples=1000)
         
         # Datos de consumo por hora
@@ -267,6 +291,99 @@ def get_data():
         logger.error(f"Error al generar datos para dashboard: {str(e)}")
         return jsonify({'error': str(e)}), 500
     
+# Ruta para gestión de datasets
+@app.route('/dataset', methods=['GET', 'POST'])
+@login_required
+def dataset_management():
+    if current_user.role != 'admin':
+        flash('No tienes permisos para acceder a esta página.')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        # Verificar si la solicitud incluye un archivo
+        if 'file' not in request.files:
+            flash('No se ha seleccionado ningún archivo')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        # Si el usuario no selecciona un archivo, el navegador 
+        # envía un archivo vacío sin nombre
+        if file.filename == '':
+            flash('No se ha seleccionado ningún archivo')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            try:
+                # Validar el archivo CSV antes de guardarlo
+                data = load_csv_dataset(file)
+                
+                # Guardar el archivo en el directorio configurado
+                filename = secure_filename('energy_data.csv')
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
+                # Asegurar que el directorio existe
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                
+                # Guardar el archivo
+                data.to_csv(filepath, index=False)
+                
+                # Obtener estadísticas del dataset
+                stats = get_dataset_statistics(data)
+                
+                flash(f'Archivo cargado con éxito: {len(data)} registros')
+                
+                # Reentrena el modelo con los nuevos datos si se solicita
+                if 'retrain' in request.form and request.form['retrain'] == 'yes':
+                    try:
+                        # Preprocesar datos
+                        X, y = preprocess_data(data, training=True)
+                        
+                        # Entrenar modelo
+                        model = Energy_Model()
+                        metrics = model.train(X, y)
+                        
+                        flash(f'Modelo reentrenado con éxito. R² = {metrics["r2"]:.4f}')
+                    except Exception as e:
+                        flash(f'Error al reentrenar el modelo: {str(e)}')
+                
+                return render_template(
+                    'dataset.html', 
+                    stats=stats, 
+                    filename=filename,
+                    success=True
+                )
+            
+            except Exception as e:
+                flash(f'Error al procesar el archivo: {str(e)}')
+                return redirect(request.url)
+        else:
+            flash('Tipo de archivo no permitido. Por favor, sube un archivo CSV.')
+            return redirect(request.url)
+    
+    # Para solicitudes GET, mostrar página de gestión de datasets
+    try:
+        # Verificar si existe un dataset actual
+        dataset_path = os.path.join(app.config['UPLOAD_FOLDER'], 'energy_data.csv')
+        if os.path.exists(dataset_path):
+            data = load_csv_dataset(dataset_path, validate=False)
+            stats = get_dataset_statistics(data)
+            return render_template('dataset.html', stats=stats, filename='energy_data.csv')
+        else:
+            return render_template('dataset.html')
+    except Exception as e:
+        flash(f'Error al cargar información del dataset: {str(e)}')
+        return render_template('dataset.html', error=str(e))
+
+@app.route('/download/<filename>')
+@login_required
+def download_file(filename):
+    if current_user.role != 'admin':
+        flash('No tienes permisos para acceder a esta funcionalidad.')
+        return redirect(url_for('index'))
+    
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 # Rutas de administración
 @app.route('/admin')
 @login_required
@@ -277,6 +394,39 @@ def admin_panel():
     
     users = User.query.all()
     return render_template('admin.html', users=users)
+
+@app.route('/retrain', methods=['POST'])
+@login_required
+def retrain_model():
+    if current_user.role != 'admin':
+        flash('No tienes permisos para realizar esta acción.')
+        return redirect(url_for('index'))
+    
+    try:
+        # Cargar dataset
+        data_path = os.path.join(app.config['UPLOAD_FOLDER'], 'energy_data.csv')
+        
+        if not os.path.exists(data_path):
+            flash('No se encontró un dataset para entrenar el modelo. Cargue un dataset primero.')
+            return redirect(url_for('dataset_management'))
+        
+        # Cargar los datos
+        data = load_csv_dataset(data_path)
+        
+        # Preprocesar datos
+        X, y = preprocess_data(data, training=True)
+        
+        # Inicializar y entrenar el modelo
+        model = Energy_Model()
+        metrics = model.train(X, y)
+        
+        flash(f'Modelo reentrenado con éxito. Métricas: R² = {metrics["r2"]:.4f}, RMSE = {metrics["rmse"]:.4f}')
+        return redirect(url_for('admin_panel'))
+    
+    except Exception as e:
+        logger.error(f"Error al reentrenar el modelo: {str(e)}")
+        flash(f'Error al reentrenar el modelo: {str(e)}')
+        return redirect(url_for('admin_panel'))
 
 if __name__ == '__main__':
     app.run(debug=True)
