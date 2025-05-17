@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
-import random
 from datetime import datetime, timedelta
+import random
+import os
+import logging
+
+# Configurar logging
+logger = logging.getLogger(__name__)
 
 def generate_synthetic_data(n_samples=1000, start_date=None, seed=42):
     """
@@ -146,15 +151,21 @@ def generate_future_scenarios(edificio_area, dias=7, model=None):
     
     # Si se proporciona modelo, realizar predicciones
     if model is not None:
-        from models.preprocess import preprocess_data
-        
-        # Preprocesar datos
-        X, _ = preprocess_data(df_scenarios, training=False)
-        
-        # Realizar predicciones
-        predictions = model.predict(X)
-        
-        # Añadir predicciones al DataFrame
-        df_scenarios['consumo_predicho'] = predictions
+        try:
+            # Corrección: Import relativo correcto
+            from ..models.preprocess import preprocess_data
+            
+            # Preprocesar datos
+            X, _ = preprocess_data(df_scenarios, training=False)
+            
+            # Realizar predicciones
+            predictions = model.predict(X)
+            
+            # Añadir predicciones al DataFrame
+            df_scenarios['consumo_predicho'] = predictions
+        except ImportError:
+            # Manejo alternativo si el import relativo falla
+            logger.warning("No se pudo importar el módulo de preprocesamiento. " +
+                          "No se realizarán predicciones en los escenarios futuros.")
     
     return df_scenarios
