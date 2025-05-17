@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 import logging
 from flask import Flask, render_template, request, jsonify, current_app, abort
-from models.model import Energy_Model
-from models.preprocess import preprocess_data
-from utils.data_generator import generate_synthetic_data
+from energia_app.models.model import Energy_Model
+from energia_app.models.preprocess import preprocess_data
+from energia_app.utils.data_generator import generate_synthetic_data
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, 
