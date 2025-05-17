@@ -218,3 +218,90 @@ Se recomienda implementar una solución de monitorización como:
 1. No exponer directamente la aplicación en producción sin un proxy inverso
 2. Cambiar la clave secreta (`SECRET_KEY`) en producción
 3. Mantener actualizadas las dependencias con `pip-audit`
+
+# Guía de implementación: Módulo de carga de dataset CSV
+
+## Archivos creados o modificados
+
+1. **Nuevo módulo para carga de datasets**:
+   - `energia_app/utils/data_loader.py`: Contiene funciones para cargar, validar y analizar datasets CSV.
+
+2. **Modificaciones en el archivo principal**:
+   - `app.py`: Se agregaron nuevas rutas y funcionalidades para gestionar datasets.
+
+3. **Nuevas plantillas HTML**:
+   - `energia_app/templates/dataset.html`: Interfaz para gestión de datasets.
+
+4. **Actualizaciones en archivos existentes**:
+   - `energia_app/utils/__init__.py`: Importa las nuevas funciones del módulo data_loader.
+   - `energia_app/templates/admin.html`: Incluye enlaces a la gestión de datasets.
+
+5. **Archivos de ejemplo**:
+   - `energia_app/data/energy_data_template.csv`: Plantilla de ejemplo para que los usuarios puedan descargar.
+
+## Nuevas funcionalidades
+
+1. **Carga de datasets desde CSV**:
+   - Permite a los administradores subir archivos CSV con datos de consumo energético.
+   - Valida que el formato de los datos sea correcto y contiene las columnas necesarias.
+
+2. **Visualización de estadísticas del dataset**:
+   - Muestra métricas importantes como el número de registros, rangos de valores y correlaciones.
+
+3. **Reentrenamiento del modelo**:
+   - Permite reentrenar el modelo con los nuevos datos cargados.
+   - Muestra las métricas de rendimiento del modelo después del reentrenamiento.
+
+4. **Descarga de datos**:
+   - Los usuarios pueden descargar los datos actuales o una plantilla de ejemplo.
+
+## Estructura del dataset
+
+El sistema espera que el archivo CSV tenga la siguiente estructura:
+
+- `area_edificio`: Área del edificio en metros cuadrados (numérico).
+- `ocupacion`: Número de personas en el edificio (entero).
+- `dia_semana`: Día de la semana (0-6, donde 0 es lunes).
+- `hora_dia`: Hora del día (0-23).
+- `consumo_energetico`: Consumo de energía en kWh (numérico).
+
+## Flujo de trabajo
+
+1. El administrador accede a la página de gestión de datasets (`/dataset`).
+2. Sube un archivo CSV con datos de consumo energético.
+3. El sistema valida el formato y contenido del archivo.
+4. Si la validación es exitosa, el archivo se guarda y se muestran estadísticas.
+5. Opcionalmente, el modelo se reentrena con los nuevos datos.
+6. Los nuevos datos se utilizan automáticamente para futuras predicciones y visualizaciones en el dashboard.
+
+## Manejo de errores
+
+- Si el archivo no tiene el formato correcto, se muestra un mensaje de error.
+- Si hay valores inválidos en las columnas importantes, se informa al usuario.
+- Si el reentrenamiento falla, se muestra un mensaje con el error específico.
+
+## Requisitos técnicos
+
+- Flask para gestionar la carga de archivos y rutas.
+- Pandas para el análisis y manipulación de datos.
+- Scikit-learn para el reentrenamiento del modelo.
+
+## Cambios en la configuración
+
+- `app.config['UPLOAD_FOLDER']`: Directorio donde se guardan los archivos CSV.
+- `app.config['MAX_CONTENT_LENGTH']`: Límite de tamaño de archivo (16 MB).
+- `app.config['ALLOWED_EXTENSIONS']`: Extensiones de archivo permitidas (solo CSV).
+
+## Rutas del sistema
+
+- `/dataset`: Página principal de gestión de datasets.
+- `/download/<filename>`: Descarga de archivos CSV.
+- `/retrain`: Reentrenamiento del modelo con los datos actuales.
+
+## Mejoras futuras
+
+- Implementar validación más avanzada de datos.
+- Añadir soporte para otros formatos (Excel, JSON).
+- Proporcionar visualizaciones preliminares de los datos antes de guardarlos.
+- Implementar funcionalidad para limpiar y preprocesar los datos durante la carga.
+- Añadir opciones de configuración para el reentrenamiento del modelo.

@@ -1,7 +1,8 @@
+# Archivo energia_app/forms.py corregido
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
-from energia_app.models.user import User
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, FloatField, TextAreaField, SelectField, SelectMultipleField, IntegerField, HiddenField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange
+from energia_app.models.user import User, Building  # Importamos Building para validación
 
 class LoginForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
@@ -26,3 +27,34 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Por favor usa una dirección de email diferente.')
+
+class BuildingForm(FlaskForm):
+    id = HiddenField('ID', default=0)  # Usando HiddenField para el ID
+    name = StringField('Nombre del Edificio', validators=[DataRequired(), Length(min=2, max=100)])
+    area = FloatField('Área (m²)', validators=[DataRequired(), NumberRange(min=1, message="El área debe ser mayor a 1 m²")])
+    location = StringField('Ubicación', validators=[Length(max=150)])
+    description = TextAreaField('Descripción', validators=[Length(max=500)])
+    active = BooleanField('Activo', default=True)
+    submit = SubmitField('Guardar')
+    
+    def validate_name(self, name):
+        # Solo validar nombres duplicados en caso de creación (no edición)
+        building_id = self.id.data
+        if not building_id or int(building_id) <= 0:
+            building = Building.query.filter_by(name=name.data).first()
+            if building is not None:
+                raise ValidationError('Ya existe un edificio con este nombre.')
+
+class PredictionForm(FlaskForm):
+    buildings = SelectMultipleField('Edificios', coerce=int, 
+                                   validators=[DataRequired(message="Seleccione al menos un edificio")])
+    ocupacion = IntegerField('Nivel de ocupación (personas)', 
+                             validators=[DataRequired(), NumberRange(min=0, max=1000)])
+    dia_semana = SelectField('Día de la semana', coerce=int, choices=[
+        (0, 'Lunes'), (1, 'Martes'), (2, 'Miércoles'),
+        (3, 'Jueves'), (4, 'Viernes'), (5, 'Sábado'), (6, 'Domingo')
+    ], validators=[DataRequired()])
+    hora_dia = SelectField('Hora del día', coerce=int, choices=[
+        (h, f'{h}:00') for h in range(24)
+    ], validators=[DataRequired()])
+    submit = SubmitField('Predecir consumo')
