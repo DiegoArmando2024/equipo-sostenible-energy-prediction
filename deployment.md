@@ -163,6 +163,25 @@ export SECRET_KEY="tu-clave-secreta-aqui"
 export FLASK_ENV=production
 export FLASK_DEBUG=0
 export SECRET_KEY="tu-clave-secreta-aqui"
+
+Para el correcto funcionamiento del sistema de autenticación en producción, configure las siguientes variables de entorno:
+
+```bash
+# Requeridas para la autenticación y base de datos
+export SECRET_KEY="clave-secreta-muy-segura-para-produccion"
+export DATABASE_URL="postgresql://usuario:password@hostname/database"
+```
+
+### Notas importantes:
+- La `SECRET_KEY` debe ser una cadena aleatoria y segura, usada para firmar las cookies de sesión
+- Para PostgreSQL en Heroku, la variable `DATABASE_URL` se configura automáticamente
+- Para otros proveedores como Render o Google Cloud Run, configure manualmente estas variables en su panel de control
+```
+
+Ejemplo de configuración en Render:
+1. En el dashboard de Render, seleccione su servicio
+2. Vaya a la pestaña "Environment"
+3. Añada las variables `SECRET_KEY` y `DATABASE_URL` con sus valores correspondientes
 ```
 
 ## Supervisión y logs

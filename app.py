@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
 import pandas as pd
 import numpy as np
 import logging
 from energia_app.models import Energy_Model, preprocess_data
 from energia_app.utils import generate_synthetic_data, generate_future_scenarios
+from energia_app.models.user import db, User
+from energia_app.forms import LoginForm, RegistrationForm
 
 # Configurar logging
 logging.basicConfig(
@@ -16,6 +19,23 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, 
             template_folder='energia_app/templates',
             static_folder='energia_app/static')
+
+# Configuración de la aplicación
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-secreta-predeterminada')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///energia_app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inicializar extensiones
+db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 # Asegurar que el modelo está entrenado
 def ensure_model_trained():
@@ -67,6 +87,58 @@ def generate_recommendations(area, ocupacion, dia_semana, hora_dia, prediction):
     recommendations.append("Realizar mantenimiento preventivo de equipos eléctricos para asegurar su eficiencia.")
     
     return recommendations[:3]  # Limitamos a 3 recomendaciones
+
+# Crear tablas de la base de datos
+with app.app_context():
+    db.create_all()
+    
+    # Crear usuario administrador si no existe
+    admin = User.query.filter_by(username='admin').first()
+    if admin is None:
+        admin = User(username='admin', email='admin@example.com', role='admin')
+        admin.set_password('adminpassword')
+        db.session.add(admin)
+        db.session.commit()
+        logger.info("Usuario administrador creado con éxito.")
+
+# Rutas de autenticación
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Usuario o contraseña inválidos')
+            return redirect(url_for('login'))
+        
+        login_user(user, remember=form.remember_me.data)
+        return redirect(url_for('index'))
+    
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('¡Registro exitoso! Ahora puedes iniciar sesión.')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)
 
 @app.route('/')
 def index():
@@ -185,6 +257,17 @@ def get_data():
     except Exception as e:
         logger.error(f"Error al generar datos para dashboard: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+# Rutas de administración
+@app.route('/admin')
+@login_required
+def admin_panel():
+    if current_user.role != 'admin':
+        flash('No tienes permisos para acceder a esta página.')
+        return redirect(url_for('index'))
+    
+    users = User.query.all()
+    return render_template('admin.html', users=users)
 
 if __name__ == '__main__':
     app.run(debug=True)

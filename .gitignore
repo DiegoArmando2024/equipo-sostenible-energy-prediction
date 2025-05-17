@@ -78,3 +78,6 @@ temp/
 /*.png
 # Pero permitir imágenes específicas en la carpeta static
 !/energia_app/static/img/*.png
+
+# Archivo .env con variables de entorno locales
+.env
