@@ -95,8 +95,9 @@ with app.app_context():
     # Crear usuario administrador si no existe
     admin = User.query.filter_by(username='admin').first()
     if admin is None:
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'adminpassword')
         admin = User(username='admin', email='admin@example.com', role='admin')
-        admin.set_password('adminpassword')
+        admin.set_password(admin_password)
         db.session.add(admin)
         db.session.commit()
         logger.info("Usuario administrador creado con éxito.")
@@ -115,7 +116,11 @@ def login():
             return redirect(url_for('login'))
         
         login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('index'))
+        next_page = request.args.get('next')
+        # Asegurar que next_page es relativo a nuestro sitio
+        if not next_page or not next_page.startswith('/'):
+            next_page = url_for('index')
+        return redirect(next_page)
     
     return render_template('login.html', form=form)
 
@@ -141,10 +146,12 @@ def register():
     return render_template('register.html', form=form)
 
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 @app.route('/predict', methods=['GET', 'POST'])
+@login_required
 def predict():
     if request.method == 'POST':
         # Obtener parámetros del formulario
@@ -194,10 +201,12 @@ def predict():
     return render_template('prediction.html')
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/api/data')
+@login_required
 def get_data():
     """API para obtener datos para las gráficas del dashboard"""
     try:
