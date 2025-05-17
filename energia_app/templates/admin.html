@@ -33,6 +33,9 @@
                         <a class="nav-link" href="/dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="/dataset">Dataset</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link active" href="/admin">Administración</a>
                     </li>
                     <li class="nav-item">
@@ -114,7 +117,14 @@
                             </div>
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">Guardar configuración</button>
-                                <button type="button" class="btn btn-success">Reentrenar modelo ahora</button>
+                                <a href="{{ url_for('dataset_management') }}" class="btn btn-success">
+                                    <i class="bi bi-database"></i> Gestionar Dataset
+                                </a>
+                                <form action="{{ url_for('retrain_model') }}" method="POST">
+                                    <button type="submit" class="btn btn-warning w-100">
+                                        <i class="bi bi-arrow-repeat"></i> Reentrenar modelo ahora
+                                    </button>
+                                </form>
                             </div>
                         </form>
                     </div>
@@ -146,6 +156,47 @@
                         </div>
                         <div class="d-grid">
                             <button class="btn btn-outline-primary">Ver informe completo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Gestión de Datos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Carga y gestión de datasets</h6>
+                                <p class="text-muted mb-0">Sube nuevos datos para entrenar el modelo y mejorar las predicciones</p>
+                            </div>
+                            <a href="{{ url_for('dataset_management') }}" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Gestionar datasets
+                            </a>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Visualización de datos</h6>
+                                <p class="text-muted mb-0">Explora estadísticas y tendencias del consumo energético</p>
+                            </div>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                                <i class="bi bi-graph-up"></i> Ver dashboard
+                            </a>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Exportar datos</h6>
+                                <p class="text-muted mb-0">Descarga los datos actuales en formato CSV</p>
+                            </div>
+                            <a href="{{ url_for('download_file', filename='energy_data.csv') }}" class="btn btn-primary">
+                                <i class="bi bi-download"></i> Descargar CSV
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,8 @@
+# Archivo energia_app/models/user.py completo
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -21,3 +23,33 @@ class User(db.Model, UserMixin):
     
     def __repr__(self):
         return f'<User {self.username}>'
+
+class Building(db.Model):
+    __tablename__ = 'buildings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    area = db.Column(db.Float, nullable=False)
+    location = db.Column(db.String(150))
+    description = db.Column(db.Text)
+    active = db.Column(db.Boolean, default=True)
+    
+    # Relación con predicciones
+    predictions = db.relationship('Prediction', backref='building', lazy=True)
+    
+    def __repr__(self):
+        return f'<Building {self.name}>'
+
+class Prediction(db.Model):
+    __tablename__ = 'predictions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    building_id = db.Column(db.Integer, db.ForeignKey('buildings.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    ocupacion = db.Column(db.Integer, nullable=False)
+    dia_semana = db.Column(db.Integer, nullable=False)
+    hora_dia = db.Column(db.Integer, nullable=False)
+    consumo_predicho = db.Column(db.Float, nullable=False)
+    
+    def __repr__(self):
+        return f'<Prediction {self.id} for Building {self.building_id}>'
