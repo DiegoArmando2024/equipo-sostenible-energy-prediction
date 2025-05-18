@@ -1,13 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard de Edificios - UDEC{% endblock %}
-
-{% block extra_css %}
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %}
+{% block title %}Gestión de Dataset - UDEC{% endblock %}
 
 {% block content %}
+<div class="row">
+    <div class="col-12">
         <h2>Gestión de Dataset</h2>
         <p class="lead">Carga y administra los datos para entrenar el modelo de predicción energética.</p>
         
@@ -243,10 +240,5 @@
         </div>
         {% endif %}
     </div>
-
-   {% endblock %}
-
-{% block extra_js %}
-<!-- Script para las gráficas -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</div>
 {% endblock %}

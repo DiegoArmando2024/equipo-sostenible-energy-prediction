@@ -2,25 +2,22 @@
 
 {% block title %}Dashboard de Edificios - UDEC{% endblock %}
 
-{% block extra_css %}
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-{% endblock %}
-
 {% block content %}
-<h2>Dashboard de Edificios</h2>
-<p class="lead">Visualización de estadísticas y tendencias de consumo energético por edificio.</p>
-        
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<div class="alert alert-info">
-    {% for message in messages %}
-    {{ message }}
-    {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
-        
+<div class="row">
+    <div class="col-12">
+        <h2>Dashboard de Edificios</h2>
+        <p class="lead">Visualización de estadísticas y tendencias de consumo energético por edificio.</p>
+                
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+                
         {% if not buildings %}
         <div class="alert alert-warning">
             <h5><i class="bi bi-exclamation-triangle"></i> No hay edificios registrados</h5>
@@ -166,10 +163,5 @@
             </div>
         {% endif %}
     </div>
-
-    {% endblock %}
-
-{% block extra_js %}
-<!-- Script para las gráficas -->
-<script src="{{ url_for('static', filename='js/consolidated_charts.js') }}"></script>
+</div>
 {% endblock %}
