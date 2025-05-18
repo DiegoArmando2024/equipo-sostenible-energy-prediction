@@ -1,29 +1,57 @@
-// Archivo consolidado de gráficos - consolidated_charts.js
-
+// Modificación a charts.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar si los elementos existen antes de crear los gráficos
-    initializeAllCharts();
+    // Intentar cargar datos de la API
+    fetch('/api/data')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error en la respuesta: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Verificar que los datos son válidos
+            if (!data) {
+                console.error('Datos no válidos recibidos de la API');
+                createDefaultCharts(); // Usar datos predeterminados si no hay datos
+                return;
+            }
+            
+            // Crear gráficas con los datos recibidos
+            if (data.consumo_horas) createHourlyChart(data.consumo_horas);
+            if (data.consumo_dias) createDailyChart(data.consumo_dias);
+            if (data.consumo_edificios) createBuildingChart(data.consumo_edificios);
+            createTrendChart();
+        })
+        .catch(error => {
+            console.error('Error al cargar datos:', error);
+            // Mostrar mensaje de error y cargar gráficas con datos predeterminados
+            createDefaultCharts();
+        });
 });
 
-// Función de inicialización principal
-function initializeAllCharts() {
-    // Gráficos de Dashboard
-    if (document.getElementById('hourlyChart')) {
-        fetchDashboardData();
-    }
+// Función para crear gráficas con datos por defecto si la API falla
+function createDefaultCharts() {
+    // Datos de ejemplo para cada gráfica
+    const hourlyData = {
+        horas: Array.from({length: 24}, (_, i) => i),
+        consumo: [15, 10, 8, 6, 5, 8, 12, 25, 40, 45, 50, 55, 60, 58, 52, 48, 45, 40, 35, 30, 25, 20, 18, 16]
+    };
     
-    // Gráficos específicos de edificios
-    if (document.getElementById('buildingConsumptionChart')) {
-        createBuildingConsumptionChart();
-    }
+    const dailyData = {
+        dias: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+        consumo: [45, 48, 46, 47, 42, 30, 25]
+    };
     
-    if (document.getElementById('predictionHistoryChart')) {
-        createPredictionHistoryChart();
-    }
+    const buildingData = {
+        edificios: ['Biblioteca', 'Administrativo', 'Ingeniería', 'Cafetería', 'Auditorio'],
+        consumo: [120, 85, 150, 45, 60]
+    };
     
-    if (document.getElementById('occupancyChart')) {
-        createOccupancyChart();
-    }
+    // Crear gráficas con datos predeterminados
+    createHourlyChart(hourlyData);
+    createDailyChart(dailyData);
+    createBuildingChart(buildingData);
+    createTrendChart();
 }
 
 // Función para obtener datos del dashboard principal
