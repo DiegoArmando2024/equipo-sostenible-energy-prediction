@@ -1,3 +1,5 @@
+# Modificación al archivo preprocess.py para añadir las funciones load_scaler y save_scaler al módulo
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -8,7 +10,7 @@ import logging
 # Configurar logging
 logger = logging.getLogger(__name__)
 
-# Funciones de utilidad para manejo de archivos
+# Funciones de utilidad para manejo de archivos - AÑADIR ESTAS FUNCIONES AL MÓDULO
 def save_scaler(scaler, scaler_path, model_dir=None):
     """
     Guarda un escalador en disco
@@ -56,6 +58,8 @@ def load_scaler(scaler_path):
     except Exception as e:
         logger.error(f"Error al cargar el escalador: {str(e)}")
         return None
+
+# El resto de tu código de preprocesamiento continúa como estaba...
 
 def preprocess_data(data, training=True):
     """
@@ -126,6 +130,18 @@ def apply_feature_engineering(df):
     # Interacción entre ocupación y área
     df['ocupacion_por_area'] = df['ocupacion'] / df['area_edificio']
     
+    # Nueva característica: Estimación base de consumo según horario
+    # Esto ayuda a establecer un "piso" de consumo para horarios nocturnos
+    df['base_consumo_hora'] = df['hora_dia'].apply(lambda x: 
+        0.3 if (0 <= x < 6) or (22 <= x <= 23) else  # Consumo base nocturno
+        0.6 if (6 <= x < 8) or (18 < x < 22) else    # Consumo transición
+        1.0                                           # Consumo horario laboral
+    )
+    
+    # Nueva característica: Interacción hora-ocupación
+    # Para capturar mejor el impacto de la ocupación en diferentes momentos del día
+    df['ocupacion_hora'] = df['ocupacion'] * df['base_consumo_hora']
+    
     # 3. Eliminar columnas originales de variables cíclicas
     df = df.drop(['dia_semana', 'hora_dia'], axis=1)
     
@@ -156,6 +172,7 @@ def normalize_features(df, training=True):
     else:
         # En predicción, cargar el escalador guardado
         scaler = load_scaler(scaler_path)
+        
         if scaler is None:
             # Si no existe, crear un escalador básico
             logger.warning(f"Escalador no encontrado en '{scaler_path}'. Usando un nuevo escalador.")

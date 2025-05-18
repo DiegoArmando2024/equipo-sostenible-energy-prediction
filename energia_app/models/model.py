@@ -67,6 +67,7 @@ class Energy_Model:
     
     def __init__(self):
         self.model = LinearRegression()
+        # IMPORTANTE: Inicializar el atributo 'trained' explícitamente
         self.trained = False
         
         # Usar ruta absoluta para el modelo
@@ -82,7 +83,13 @@ class Energy_Model:
         loaded_model = load_model_file(self.model_path)
         if loaded_model:
             self.model = loaded_model
+            # IMPORTANTE: Establecer trained=True cuando el modelo se carga correctamente
             self.trained = True
+            logger.info("Modelo cargado exitosamente y marcado como entrenado")
+        else:
+            logger.warning("No se pudo cargar un modelo entrenado existente")
+            # Asegurar que trained=False si no se pudo cargar
+            self.trained = False
     
     def train(self, X, y, test_size=0.2, random_state=42):
         """
@@ -105,10 +112,11 @@ class Energy_Model:
             
             # Entrenar modelo
             self.model.fit(X_train, y_train)
+            # IMPORTANTE: Establecer trained=True después de entrenar exitosamente
             self.trained = True
             
             # Evaluar modelo
-            y_pred = self.model.predict(X_test)
+            y_pred = self.predict(X_test)
             
             # Calcular métricas
             metrics = self._calculate_metrics(y_test, y_pred)
@@ -121,6 +129,8 @@ class Energy_Model:
             
         except Exception as e:
             logger.error(f"Error al entrenar el modelo: {str(e)}")
+            # IMPORTANTE: Asegurar que trained=False si el entrenamiento falla
+            self.trained = False
             raise
     
     def _calculate_metrics(self, y_true, y_pred):
@@ -148,19 +158,29 @@ class Energy_Model:
     
     def predict(self, X):
         """
-        Realiza predicciones con el modelo entrenado
+        Realiza predicciones con el modelo entrenado y asegura valores positivos
         
         Args:
             X (DataFrame): Características de entrada
         
         Returns:
-            array: Predicciones de consumo energético
+            array: Predicciones de consumo energético (siempre >= 0)
         """
-        if not self.trained:
-            raise ValueError("El modelo no ha sido entrenado aún.")
+        # IMPORTANTE: Verificar explícitamente el atributo trained
+        if not hasattr(self, 'trained') or not self.trained:
+            raise ValueError("El modelo no ha sido entrenado aún. Verifique si el archivo del modelo existe.")
         
         try:
+            # Realizar predicción base con el modelo
             predictions = self.model.predict(X)
+            
+            # Asegurar que todas las predicciones sean no-negativas
+            predictions = np.maximum(predictions, 0)
+            
+            # Establecer un consumo mínimo razonable
+            min_consumption = 0.1  # Consumo mínimo en kWh
+            predictions = np.maximum(predictions, min_consumption)
+            
             return predictions
         except Exception as e:
             logger.error(f"Error al realizar predicción: {str(e)}")
@@ -175,8 +195,11 @@ class Energy_Model:
         loaded_model = load_model_file(self.model_path)
         if loaded_model:
             self.model = loaded_model
+            # IMPORTANTE: Establecer trained=True cuando el modelo se carga correctamente
             self.trained = True
             return True
+        # IMPORTANTE: Asegurar que trained=False si no se pudo cargar
+        self.trained = False
         return False
     
     def get_feature_importance(self):
@@ -186,7 +209,8 @@ class Energy_Model:
         Returns:
             ndarray: Importancia de cada característica
         """
-        if not self.trained:
+        # IMPORTANTE: Verificar explícitamente el atributo trained
+        if not hasattr(self, 'trained') or not self.trained:
             raise ValueError("El modelo no ha sido entrenado aún.")
         
         try:
