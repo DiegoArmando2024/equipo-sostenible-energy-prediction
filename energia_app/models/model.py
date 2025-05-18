@@ -71,8 +71,8 @@ class Energy_Model:
                 'mse': mse,
                 'rmse': rmse,
                 'r2': r2,
-                'coefficients': self.model.coef_.tolist(),  # Convertir a lista para mejor serialización
-                'intercept': float(self.model.intercept_)   # Convertir a float nativo
+                'coefficients': self.model.coef_.tolist(),
+                'intercept': float(self.model.intercept_)
             }
             
             logger.info(f"Modelo entrenado. Métricas: MSE={mse:.4f}, R²={r2:.4f}")

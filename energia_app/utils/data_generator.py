@@ -152,20 +152,33 @@ def generate_future_scenarios(edificio_area, dias=7, model=None):
     # Si se proporciona modelo, realizar predicciones
     if model is not None:
         try:
-            # Corrección: Import relativo correcto
-            from ..models.preprocess import preprocess_data
+            # Importar correctamente el módulo de preprocesamiento
+            # Solución más robusta:
+            import importlib
+            import sys
+            
+            # Asegurar que el módulo principal está en el sys.path
+            module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            if module_path not in sys.path:
+                sys.path.insert(0, module_path)
+                
+            # Importar dinámicamente
+            preprocess = importlib.import_module('models.preprocess')
             
             # Preprocesar datos
-            X, _ = preprocess_data(df_scenarios, training=False)
+            X, _ = preprocess.preprocess_data(df_scenarios, training=False)
             
             # Realizar predicciones
             predictions = model.predict(X)
             
             # Añadir predicciones al DataFrame
             df_scenarios['consumo_predicho'] = predictions
-        except ImportError:
-            # Manejo alternativo si el import relativo falla
-            logger.warning("No se pudo importar el módulo de preprocesamiento. " +
-                          "No se realizarán predicciones en los escenarios futuros.")
+        except ImportError as e:
+            # Manejo específico del error
+            logger.warning(f"No se pudo importar el módulo de preprocesamiento: {str(e)}")
+            logger.warning("No se realizarán predicciones en los escenarios futuros.")
+        except Exception as e:
+            # Otros errores
+            logger.error(f"Error al generar predicciones: {str(e)}")
     
     return df_scenarios
