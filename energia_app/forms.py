@@ -1,8 +1,7 @@
-# Archivo energia_app/forms.py corregido
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, FloatField, TextAreaField, SelectField, SelectMultipleField, IntegerField, HiddenField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange
-from energia_app.models.user import User, Building  # Importamos Building para validación
+from energia_app.models.user import User, Building
 
 class LoginForm(FlaskForm):
     username = StringField('Usuario', validators=[DataRequired()])
@@ -29,7 +28,7 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Por favor usa una dirección de email diferente.')
 
 class BuildingForm(FlaskForm):
-    id = HiddenField('ID', default=0)  # Usando HiddenField para el ID
+    id = HiddenField('ID', default=0)
     name = StringField('Nombre del Edificio', validators=[DataRequired(), Length(min=2, max=100)])
     area = FloatField('Área (m²)', validators=[DataRequired(), NumberRange(min=1, message="El área debe ser mayor a 1 m²")])
     location = StringField('Ubicación', validators=[Length(max=150)])

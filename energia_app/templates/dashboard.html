@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -150,7 +150,7 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <!-- Script para las gráficas -->
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 {% endblock %}

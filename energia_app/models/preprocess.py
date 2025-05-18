@@ -62,9 +62,8 @@ def preprocess_data(data, training=True):
         
         # ---- Normalización ----
         # Usar ruta absoluta para el escalador
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        scaler_dir = os.path.join(base_dir, 'models')
-        scaler_path = os.path.join(scaler_dir, 'scaler.pkl')
+        model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
+        scaler_path = os.path.join(model_dir, 'scaler.pkl')
         
         if training:
             # En entrenamiento, ajustar el escalador y guardarlo
@@ -73,7 +72,7 @@ def preprocess_data(data, training=True):
             
             # Guardar el escalador para uso futuro
             try:
-                os.makedirs(scaler_dir, exist_ok=True)
+                os.makedirs(model_dir, exist_ok=True)
                 joblib.dump(scaler, scaler_path)
                 logger.info(f"Escalador guardado en {scaler_path}")
             except Exception as e:
@@ -82,14 +81,17 @@ def preprocess_data(data, training=True):
         else:
             # En predicción, cargar el escalador guardado
             if not os.path.exists(scaler_path):
-                raise FileNotFoundError(f"Escalador no encontrado en '{scaler_path}'. Entrene primero el modelo.")
-            
-            try:
-                scaler = joblib.load(scaler_path)
-                X_scaled = scaler.transform(df)
-            except Exception as e:
-                logger.error(f"Error al cargar o aplicar el escalador: {str(e)}")
-                raise
+                # Si no existe, crear un escalador básico
+                logger.warning(f"Escalador no encontrado en '{scaler_path}'. Usando un nuevo escalador.")
+                scaler = StandardScaler()
+                X_scaled = scaler.fit_transform(df)
+            else:
+                try:
+                    scaler = joblib.load(scaler_path)
+                    X_scaled = scaler.transform(df)
+                except Exception as e:
+                    logger.error(f"Error al cargar o aplicar el escalador: {str(e)}")
+                    raise
         
         # Convertir a DataFrame para mantener nombres de columnas
         X_processed = pd.DataFrame(X_scaled, columns=df.columns)
