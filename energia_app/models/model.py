@@ -10,6 +10,55 @@ import logging
 # Configurar logging
 logger = logging.getLogger(__name__)
 
+# Funciones de utilidad para manejo de modelos
+def save_model_file(model, model_path, model_dir=None):
+    """
+    Guarda un modelo en disco
+    
+    Args:
+        model: Modelo a guardar
+        model_path (str): Ruta donde guardar el modelo
+        model_dir (str, optional): Directorio donde guardar el modelo
+        
+    Returns:
+        bool: True si se guardó correctamente, False en caso contrario
+    """
+    try:
+        # Crear directorio si se especifica y no existe
+        if model_dir:
+            os.makedirs(model_dir, exist_ok=True)
+        elif not os.path.exists(os.path.dirname(model_path)):
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            
+        joblib.dump(model, model_path)
+        logger.info(f"Modelo guardado en {model_path}")
+        return True
+    except Exception as e:
+        logger.error(f"Error al guardar el modelo: {str(e)}")
+        return False
+
+def load_model_file(model_path):
+    """
+    Carga un modelo desde disco
+    
+    Args:
+        model_path (str): Ruta del modelo
+        
+    Returns:
+        object: Modelo cargado o None si ocurre un error
+    """
+    try:
+        if not os.path.exists(model_path):
+            logger.warning(f"Modelo no encontrado en '{model_path}'")
+            return None
+            
+        model = joblib.load(model_path)
+        logger.info(f"Modelo cargado desde {model_path}")
+        return model
+    except Exception as e:
+        logger.error(f"Error al cargar el modelo: {str(e)}")
+        return None
+
 class Energy_Model:
     """
     Modelo de regresión lineal para predecir el consumo energético
@@ -26,12 +75,14 @@ class Energy_Model:
         self.model_path = os.path.join(self.model_dir, 'energy_model.pkl')
         
         # Cargar modelo si existe
-        if os.path.exists(self.model_path):
-            try:
-                self.load_model()
-                logger.info(f"Modelo cargado desde {self.model_path}")
-            except Exception as e:
-                logger.error(f"Error al cargar el modelo: {str(e)}")
+        self._try_load_model()
+    
+    def _try_load_model(self):
+        """Intenta cargar el modelo existente"""
+        loaded_model = load_model_file(self.model_path)
+        if loaded_model:
+            self.model = loaded_model
+            self.trained = True
     
     def train(self, X, y, test_size=0.2, random_state=42):
         """
@@ -60,27 +111,40 @@ class Energy_Model:
             y_pred = self.model.predict(X_test)
             
             # Calcular métricas
-            mse = mean_squared_error(y_test, y_pred)
-            rmse = np.sqrt(mse)
-            r2 = r2_score(y_test, y_pred)
+            metrics = self._calculate_metrics(y_test, y_pred)
             
             # Guardar modelo entrenado
             self.save_model()
             
-            metrics = {
-                'mse': mse,
-                'rmse': rmse,
-                'r2': r2,
-                'coefficients': self.model.coef_.tolist(),
-                'intercept': float(self.model.intercept_)
-            }
-            
-            logger.info(f"Modelo entrenado. Métricas: MSE={mse:.4f}, R²={r2:.4f}")
+            logger.info(f"Modelo entrenado. Métricas: MSE={metrics['mse']:.4f}, R²={metrics['r2']:.4f}")
             return metrics
             
         except Exception as e:
             logger.error(f"Error al entrenar el modelo: {str(e)}")
             raise
+    
+    def _calculate_metrics(self, y_true, y_pred):
+        """
+        Calcula métricas de rendimiento del modelo
+        
+        Args:
+            y_true: Valores reales
+            y_pred: Valores predichos
+            
+        Returns:
+            dict: Métricas de rendimiento
+        """
+        mse = mean_squared_error(y_true, y_pred)
+        rmse = np.sqrt(mse)
+        r2 = r2_score(y_true, y_pred)
+        
+        return {
+            'mse': mse,
+            'rmse': rmse,
+            'r2': r2,
+            'coefficients': self.model.coef_.tolist(),
+            'intercept': float(self.model.intercept_)
+        }
     
     def predict(self, X):
         """
@@ -104,30 +168,23 @@ class Energy_Model:
     
     def save_model(self):
         """Guarda el modelo entrenado en disco"""
-        try:
-            # Crear directorio si no existe
-            os.makedirs(self.model_dir, exist_ok=True)
-            joblib.dump(self.model, self.model_path)
-            logger.info(f"Modelo guardado en {self.model_path}")
-        except Exception as e:
-            logger.error(f"Error al guardar el modelo: {str(e)}")
-            raise
+        return save_model_file(self.model, self.model_path, self.model_dir)
     
     def load_model(self):
         """Carga el modelo entrenado desde disco"""
-        try:
-            self.model = joblib.load(self.model_path)
+        loaded_model = load_model_file(self.model_path)
+        if loaded_model:
+            self.model = loaded_model
             self.trained = True
-        except Exception as e:
-            logger.error(f"Error al cargar el modelo: {str(e)}")
-            raise
+            return True
+        return False
     
     def get_feature_importance(self):
         """
         Obtiene la importancia relativa de cada característica
         
         Returns:
-            dict: Importancia de cada característica
+            ndarray: Importancia de cada característica
         """
         if not self.trained:
             raise ValueError("El modelo no ha sido entrenado aún.")

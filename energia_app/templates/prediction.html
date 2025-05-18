@@ -1,209 +1,199 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard de Edificios - UDEC{% endblock %}
-
-{% block extra_css %}
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-{% endblock %}
+{% block title %}Predicción de Consumo Energético - UDEC{% endblock %}
 
 {% block content %}
-                <h2>Predicción de Consumo Energético</h2>
-                <p class="lead">Seleccione uno o varios edificios y los parámetros para predecir el consumo energético.</p>
+<div class="row">
+    <div class="col-lg-6">
+        <h2>Predicción de Consumo Energético</h2>
+        <p class="lead">Seleccione uno o varios edificios y los parámetros para predecir el consumo energético.</p>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="/predict" class="mt-4">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                <label for="buildings" class="form-label">
+                    <i class="bi bi-building"></i> Edificios
+                </label>
+                {{ form.buildings(class="form-control select2", multiple="multiple", style="width: 100%") }}
+                {% for error in form.buildings.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text">Seleccione uno o varios edificios para predecir su consumo energético.</div>
                 
-                {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                <div class="alert alert-info">
-                    {% for message in messages %}
-                    {{ message }}
-                    {% endfor %}
+                {% if not buildings %}
+                <div class="alert alert-warning mt-2">
+                    <small>No hay edificios registrados. <a href="{{ url_for('manage_buildings') }}">Registre edificios</a> para continuar.</small>
                 </div>
                 {% endif %}
-                {% endwith %}
-                
-                <form method="POST" action="/predict" class="mt-4">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        <label for="buildings" class="form-label">
-                            <i class="bi bi-building"></i> Edificios
-                        </label>
-                        {{ form.buildings(class="form-control select2", multiple="multiple", style="width: 100%") }}
-                        {% for error in form.buildings.errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                        <div class="form-text">Seleccione uno o varios edificios para predecir su consumo energético.</div>
-                        
-                        {% if not buildings %}
-                        <div class="alert alert-warning mt-2">
-                            <small>No hay edificios registrados. <a href="{{ url_for('manage_buildings') }}">Registre edificios</a> para continuar.</small>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="ocupacion" class="form-label">
-                            <i class="bi bi-people"></i> Nivel de ocupación (personas)
-                        </label>
-                        {{ form.ocupacion(class="form-control", value=ocupacion|default(50)) }}
-                        {% for error in form.ocupacion.errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                        <div class="form-text">Número estimado de personas ocupando el edificio.</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="dia_semana" class="form-label">
-                            <i class="bi bi-calendar3"></i> Día de la semana
-                        </label>
-                        {{ form.dia_semana(class="form-control") }}
-                        {% for error in form.dia_semana.errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="hora_dia" class="form-label">
-                            <i class="bi bi-clock"></i> Hora del día
-                        </label>
-                        {{ form.hora_dia(class="form-control") }}
-                        {% for error in form.hora_dia.errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" {% if not buildings %}disabled{% endif %}>
-                        <i class="bi bi-lightning-charge"></i> Predecir consumo
-                    </button>
-                </form>
             </div>
             
-            <div class="col-lg-6">
-                {% if predictions %}
-                <div class="mb-4">
-                    <h3>Resultados de predicción</h3>
-                    <p>Consumo energético estimado para los edificios seleccionados.</p>
-                </div>
-                
-                {% for prediction in predictions %}
-                <div class="card mb-3">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">{{ prediction.building_name }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-3">
-                            <div class="display-4 fw-bold text-primary">
-                                {{ prediction.consumption }} kWh
-                            </div>
-                            <p>Consumo energético estimado</p>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-building fs-4 me-2 text-primary"></i>
-                                    <div>
-                                        <small class="text-muted">Área del edificio</small>
-                                        <div>{{ prediction.area }} m²</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-people fs-4 me-2 text-primary"></i>
-                                    <div>
-                                        <small class="text-muted">Nivel de ocupación</small>
-                                        <div>{{ ocupacion }} personas</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-calendar3 fs-4 me-2 text-primary"></i>
-                                    <div>
-                                        <small class="text-muted">Día de la semana</small>
-                                        <div>
-                                            {% set days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] %}
-                                            {{ days[dia_semana] }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-clock fs-4 me-2 text-primary"></i>
-                                    <div>
-                                        <small class="text-muted">Hora del día</small>
-                                        <div>{{ hora_dia }}:00</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {% if prediction.recommendations %}
-                        <hr>
-                        <h6><i class="bi bi-lightbulb"></i> Recomendaciones para este edificio:</h6>
-                        <ul>
-                            {% for recommendation in prediction.recommendations %}
-                            <li>{{ recommendation }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-                </div>
+            <div class="mb-3">
+                <label for="ocupacion" class="form-label">
+                    <i class="bi bi-people"></i> Nivel de ocupación (personas)
+                </label>
+                {{ form.ocupacion(class="form-control", value=ocupacion|default(50)) }}
+                {% for error in form.ocupacion.errors %}
+                <div class="text-danger">{{ error }}</div>
                 {% endfor %}
-                
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h5>Consumo total estimado</h5>
-                        <div class="display-6 text-primary fw-bold">{{ total_consumption }} kWh</div>
-                        <p class="mb-0">Suma total para todos los edificios seleccionados</p>
+                <div class="form-text">Número estimado de personas ocupando el edificio.</div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="dia_semana" class="form-label">
+                    <i class="bi bi-calendar3"></i> Día de la semana
+                </label>
+                {{ form.dia_semana(class="form-control") }}
+                {% for error in form.dia_semana.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="hora_dia" class="form-label">
+                    <i class="bi bi-clock"></i> Hora del día
+                </label>
+                {{ form.hora_dia(class="form-control") }}
+                {% for error in form.hora_dia.errors %}
+                <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary" {% if not buildings %}disabled{% endif %}>
+                <i class="bi bi-lightning-charge"></i> Predecir consumo
+            </button>
+        </form>
+    </div>
+    
+    <div class="col-lg-6">
+        {% if predictions %}
+        <div class="mb-4">
+            <h3>Resultados de predicción</h3>
+            <p>Consumo energético estimado para los edificios seleccionados.</p>
+        </div>
+        
+        {% for prediction in predictions %}
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{{ prediction.building_name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="display-4 fw-bold text-primary">
+                        {{ prediction.consumption }} kWh
                     </div>
+                    <p>Consumo energético estimado</p>
                 </div>
                 
-                {% else %}
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Cómo funciona</h4>
-                        <p>
-                            Nuestro sistema utiliza un modelo de regresión lineal entrenado con datos históricos
-                            para predecir el consumo energético basado en los parámetros ingresados.
-                        </p>
-                        <p>
-                            Las predicciones consideran los patrones de uso de energía según el día de la semana,
-                            hora del día, área del edificio y nivel de ocupación, proporcionando una estimación
-                            precisa del consumo esperado.
-                        </p>
-                        <p>
-                            Complete el formulario a la izquierda y obtendrá no solo una predicción del consumo,
-                            sino también recomendaciones personalizadas para optimizar el uso de energía en cada edificio.
-                        </p>
-                        
-                        <div class="mt-4">
-                            <h5>Selección múltiple de edificios</h5>
-                            <p>
-                                Puede seleccionar varios edificios a la vez para comparar su consumo energético
-                                bajo las mismas condiciones. Simplemente mantenga presionada la tecla Ctrl (o Cmd en Mac)
-                                mientras hace clic en los edificios que desea seleccionar.
-                            </p>
-                            <div class="alert alert-info">
-                                <strong>Consejo:</strong> Para una experiencia óptima, primero <a href="{{ url_for('manage_buildings') }}">registre los edificios</a> 
-                                con sus respectivas áreas y luego realice las predicciones.
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-building fs-4 me-2 text-primary"></i>
+                            <div>
+                                <small class="text-muted">Área del edificio</small>
+                                <div>{{ prediction.area }} m²</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-people fs-4 me-2 text-primary"></i>
+                            <div>
+                                <small class="text-muted">Nivel de ocupación</small>
+                                <div>{{ ocupacion }} personas</div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar3 fs-4 me-2 text-primary"></i>
+                            <div>
+                                <small class="text-muted">Día de la semana</small>
+                                <div>
+                                    {% set days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] %}
+                                    {{ days[dia_semana] }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock fs-4 me-2 text-primary"></i>
+                            <div>
+                                <small class="text-muted">Hora del día</small>
+                                <div>{{ hora_dia }}:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if prediction.recommendations %}
+                <hr>
+                <h6><i class="bi bi-lightbulb"></i> Recomendaciones para este edificio:</h6>
+                <ul>
+                    {% for recommendation in prediction.recommendations %}
+                    <li>{{ recommendation }}</li>
+                    {% endfor %}
+                </ul>
                 {% endif %}
             </div>
         </div>
+        {% endfor %}
+        
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5>Consumo total estimado</h5>
+                <div class="display-6 text-primary fw-bold">{{ total_consumption }} kWh</div>
+                <p class="mb-0">Suma total para todos los edificios seleccionados</p>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Cómo funciona</h4>
+                <p>
+                    Nuestro sistema utiliza un modelo de regresión lineal entrenado con datos históricos
+                    para predecir el consumo energético basado en los parámetros ingresados.
+                </p>
+                <p>
+                    Las predicciones consideran los patrones de uso de energía según el día de la semana,
+                    hora del día, área del edificio y nivel de ocupación, proporcionando una estimación
+                    precisa del consumo esperado.
+                </p>
+                <p>
+                    Complete el formulario a la izquierda y obtendrá no solo una predicción del consumo,
+                    sino también recomendaciones personalizadas para optimizar el uso de energía en cada edificio.
+                </p>
+                
+                <div class="mt-4">
+                    <h5>Selección múltiple de edificios</h5>
+                    <p>
+                        Puede seleccionar varios edificios a la vez para comparar su consumo energético
+                        bajo las mismas condiciones. Simplemente mantenga presionada la tecla Ctrl (o Cmd en Mac)
+                        mientras hace clic en los edificios que desea seleccionar.
+                    </p>
+                    <div class="alert alert-info">
+                        <strong>Consejo:</strong> Para una experiencia óptima, primero <a href="{{ url_for('manage_buildings') }}">registre los edificios</a> 
+                        con sus respectivas áreas y luego realice las predicciones.
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-
-    {% endblock %}
-
-{% block extra_js %}
-<!-- Script para las gráficas -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</div>
 {% endblock %}

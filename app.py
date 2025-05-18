@@ -10,12 +10,9 @@ from sqlalchemy.sql import extract, func
 
 # Importar modelos y utilidades
 from energia_app.models import Energy_Model, preprocess_data
-from energia_app.models.user import db, User, Building, Prediction  # Importación correcta de Building y Prediction
-from energia_app.utils import generate_synthetic_data, generate_future_scenarios
+from energia_app.models.user import db, User, Building, Prediction
 from energia_app.utils.data_loader import load_csv_dataset, save_dataset, get_dataset_statistics
 from energia_app.forms import LoginForm, RegistrationForm, BuildingForm, PredictionForm 
-
-
 
 # Configurar logging
 logging.basicConfig(
@@ -47,55 +44,56 @@ login_manager.login_message = 'Por favor inicia sesión para acceder a esta pág
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-
-
 def allowed_file(filename):
     """Verifica si la extensión del archivo es permitida"""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-
-# Asegurar que el modelo está entrenado
 def ensure_model_trained():
+    """Asegura que el modelo está entrenado"""
     model = Energy_Model()
     
-    # Ruta de datos predeterminada
+    # Si el modelo ya está entrenado, devolverlo
+    if model.trained:
+        return model
+        
+    # Verificar si existe un dataset para entrenar
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'energia_app', 'data')
     os.makedirs(data_dir, exist_ok=True)
     data_path = os.path.join(data_dir, 'energy_data.csv')
     
-    # Si el modelo no está entrenado, comprobamos si existe un dataset
-    if not model.trained:
-        logger.info("Modelo no entrenado. Buscando dataset para entrenar...")
+    if not os.path.exists(data_path):
+        logger.error("No se encontró dataset para entrenar el modelo")
+        raise ValueError("No hay datos disponibles para entrenar el modelo. Por favor, cargue un dataset primero.")
+    
+    try:
+        # Cargar dataset existente
+        data = load_csv_dataset(data_path)
+        logger.info(f"Dataset cargado con {len(data)} registros para entrenamiento.")
         
-        if os.path.exists(data_path):
-            logger.info(f"Dataset encontrado en {data_path}. Cargando datos...")
-            # Cargar dataset existente
-            try:
-                data = load_csv_dataset(data_path)
-                logger.info(f"Dataset cargado con {len(data)} registros.")
-            except Exception as e:
-                logger.error(f"Error al cargar dataset: {str(e)}. Generando datos sintéticos...")
-                data = generate_synthetic_data(n_samples=1000)
-                data.to_csv(data_path, index=False)
-        else:
-            logger.info("No se encontró dataset. Generando datos sintéticos...")
-            data = generate_synthetic_data(n_samples=1000)
-            # Guardar los datos para referencia futura
-            data.to_csv(data_path, index=False)
-        
-        # Preprocesar datos
+        # Preprocesar y entrenar
         X, y = preprocess_data(data, training=True)
-        
-        # Entrenar modelo
         metrics = model.train(X, y)
         logger.info(f"Modelo entrenado con éxito. Métricas: R² = {metrics['r2']:.4f}")
-    
-    return model
+        
+        return model
+    except Exception as e:
+        logger.error(f"Error al entrenar el modelo: {str(e)}")
+        raise
 
-# Función para generar recomendaciones basadas en los parámetros de entrada
-def generate_recommendations(area, ocupacion, dia_semana, hora_dia, prediction):
+def generate_recommendations(area, ocupacion, dia_semana, hora_dia, prediction=None):
+    """
+    Genera recomendaciones basadas en los parámetros de entrada
+    
+    Args:
+        area (float): Área del edificio
+        ocupacion (int): Nivel de ocupación
+        dia_semana (int): Día de la semana (0-6)
+        hora_dia (int): Hora del día (0-23)
+        prediction (float, optional): Predicción de consumo
+        
+    Returns:
+        list: Lista de hasta 3 recomendaciones
+    """
     recommendations = []
     
     # Recomendaciones basadas en el día de la semana
@@ -121,6 +119,42 @@ def generate_recommendations(area, ocupacion, dia_semana, hora_dia, prediction):
     recommendations.append("Realizar mantenimiento preventivo de equipos eléctricos para asegurar su eficiencia.")
     
     return recommendations[:3]  # Limitamos a 3 recomendaciones
+
+def get_building_stats(building, predictions=None):
+    """
+    Obtiene estadísticas para un edificio específico
+    
+    Args:
+        building: Objeto Building
+        predictions: Lista de predicciones (opcional)
+        
+    Returns:
+        dict: Estadísticas del edificio
+    """
+    stats = {
+        'id': building.id,
+        'name': building.name,
+        'area': building.area,
+        'location': building.location,
+        'active': building.active
+    }
+    
+    # Si se proporcionan predicciones, usar esas
+    if predictions is not None:
+        building_predictions = [p for p in predictions if p.building_id == building.id]
+    else:
+        building_predictions = Prediction.query.filter_by(building_id=building.id).all()
+    
+    prediction_count = len(building_predictions)
+    
+    if prediction_count > 0:
+        stats['avg_consumption'] = round(sum(p.consumo_predicho for p in building_predictions) / prediction_count, 2)
+        stats['avg_occupancy'] = round(sum(p.ocupacion for p in building_predictions) / prediction_count, 1)
+        stats['prediction_count'] = prediction_count
+    else:
+        stats.update({'avg_consumption': 0, 'avg_occupancy': 0, 'prediction_count': 0})
+        
+    return stats
 
 # Crear tablas de la base de datos
 with app.app_context():
@@ -185,13 +219,12 @@ def index():
     return render_template('index.html')
 
 # Rutas para gestión de edificios
-@app.route('/buildings', methods=['GET', 'POST'])
+# Rutas para gestión de edificios
+@app.route('/buildings', methods=['GET', 'POST'])  # Asegúrate de que incluya POST
 @app.route('/buildings/<int:building_id>', methods=['GET'])
 @login_required
 def manage_buildings(building_id=None):
-    """
-    Gestión de edificios para predicciones
-    """
+    """Gestión de edificios para predicciones"""
     # Inicializar formulario
     form = BuildingForm()
     
@@ -208,8 +241,8 @@ def manage_buildings(building_id=None):
     
     # Procesar formulario si se envía
     if form.validate_on_submit():
-        if form.id.data:  # Edición
-            building = Building.query.get_or_404(form.id.data)
+        if form.id.data and int(form.id.data) > 0:  # Edición
+            building = Building.query.get_or_404(int(form.id.data))
             building.name = form.name.data
             building.area = form.area.data
             building.location = form.location.data
@@ -239,9 +272,7 @@ def manage_buildings(building_id=None):
 @app.route('/buildings/delete/<int:building_id>')
 @login_required
 def delete_building(building_id):
-    """
-    Eliminar un edificio
-    """
+    """Eliminar un edificio"""
     if current_user.role != 'admin':
         flash('No tienes permisos para eliminar edificios.')
         return redirect(url_for('manage_buildings'))
@@ -288,7 +319,11 @@ def predict():
         selected_buildings = Building.query.filter(Building.id.in_(selected_building_ids)).all()
         
         # Asegurar que el modelo está entrenado
-        model = ensure_model_trained()
+        try:
+            model = ensure_model_trained()
+        except ValueError as e:
+            flash(str(e))
+            return render_template('prediction.html', form=form, buildings=active_buildings)
         
         # Realizar predicciones para cada edificio
         predictions = []
@@ -376,11 +411,11 @@ def get_data():
         data_path = os.path.join(app.config['UPLOAD_FOLDER'], 'energy_data.csv')
         
         # Verificar si existe el dataset
-        if os.path.exists(data_path):
-            data = load_csv_dataset(data_path, validate=False)
-        else:
-            # Si no existe, usar datos sintéticos
-            data = generate_synthetic_data(n_samples=1000)
+        if not os.path.exists(data_path):
+            return jsonify({'error': 'No existe un dataset para generar gráficas. Por favor, cargue un dataset primero.'}), 404
+        
+        # Cargar el dataset existente
+        data = load_csv_dataset(data_path, validate=False)
         
         # Datos de consumo por hora
         consumo_horas = {
@@ -397,25 +432,51 @@ def get_data():
                        for d in range(7)]
         }
         
-        # Datos de consumo por edificio (simulado con áreas diferentes)
-        areas_edificios = [1000, 2000, 3000, 4000, 5000]
-        edificios = ['Edificio A', 'Edificio B', 'Edificio C', 'Edificio D', 'Edificio E']
+        # Datos de consumo por edificio usando datos reales de edificios
+        edificios_reales = Building.query.all()
         
-        consumo_edificios = {
-            'edificios': edificios,
-            'consumo': []
-        }
-        
-        # Para cada edificio, calculamos el consumo promedio
-        for area in areas_edificios:
-            # Filtramos datos cercanos a esta área
-            area_min = area * 0.9
-            area_max = area * 1.1
+        if edificios_reales:
+            # Usar edificios reales de la base de datos
+            edificios = [b.name for b in edificios_reales]
+            consumo_edificios = {
+                'edificios': edificios,
+                'consumo': []
+            }
             
-            consumo_medio = data[(data['area_edificio'] >= area_min) & 
-                                 (data['area_edificio'] <= area_max)]['consumo_energetico'].mean()
+            # Obtener consumo promedio de predicciones reales
+            for building in edificios_reales:
+                predictions = Prediction.query.filter_by(building_id=building.id).all()
+                if predictions:
+                    avg_consumption = sum(p.consumo_predicho for p in predictions) / len(predictions)
+                    consumo_edificios['consumo'].append(round(avg_consumption, 2))
+                else:
+                    # Si no hay predicciones, usar datos del dataset con área similar
+                    area = building.area
+                    area_min = area * 0.9
+                    area_max = area * 1.1
+                    consumo_medio = data[(data['area_edificio'] >= area_min) & 
+                                       (data['area_edificio'] <= area_max)]['consumo_energetico'].mean()
+                    consumo_edificios['consumo'].append(round(consumo_medio, 2))
+        else:
+            # Usar datos filtrados por áreas si no hay edificios reales
+            areas_edificios = [1000, 2000, 3000, 4000, 5000]
+            edificios = ['Edificio A', 'Edificio B', 'Edificio C', 'Edificio D', 'Edificio E']
             
-            consumo_edificios['consumo'].append(round(consumo_medio, 2))
+            consumo_edificios = {
+                'edificios': edificios,
+                'consumo': []
+            }
+            
+            # Para cada edificio, calculamos el consumo promedio
+            for area in areas_edificios:
+                # Filtramos datos cercanos a esta área
+                area_min = area * 0.9
+                area_max = area * 1.1
+                
+                consumo_medio = data[(data['area_edificio'] >= area_min) & 
+                                     (data['area_edificio'] <= area_max)]['consumo_energetico'].mean()
+                
+                consumo_edificios['consumo'].append(round(consumo_medio, 2))
         
         return jsonify({
             'consumo_horas': consumo_horas,
@@ -596,16 +657,17 @@ def buildings_dashboard():
         current_year = datetime.now().year
         current_month_year = datetime.now().strftime('%B %Y')
         
-        # Obtener predicciones del mes actual
-        current_month_predictions = Prediction.query.filter(
+        # Obtener predicciones del mes actual (usando SQL nativo para optimizar)
+        current_month_predictions = db.session.query(
+            func.sum(Prediction.consumo_predicho).label('total_consumo')
+        ).filter(
             extract('month', Prediction.timestamp) == current_month,
             extract('year', Prediction.timestamp) == current_year
-        ).all()
+        ).scalar()
         
         # Calcular consumo total
         if current_month_predictions:
-            total_consumption = sum(p.consumo_predicho for p in current_month_predictions) / 30
-            total_consumption = round(total_consumption, 2)
+            total_consumption = round(float(current_month_predictions) / 30, 2)
         else:
             total_consumption = 0
         
@@ -613,13 +675,15 @@ def buildings_dashboard():
         last_month = current_month - 1 if current_month > 1 else 12
         last_month_year = current_year if current_month > 1 else current_year - 1
         
-        last_month_predictions = Prediction.query.filter(
+        last_month_consumption = db.session.query(
+            func.sum(Prediction.consumo_predicho).label('total_consumo')
+        ).filter(
             extract('month', Prediction.timestamp) == last_month,
             extract('year', Prediction.timestamp) == last_month_year
-        ).all()
+        ).scalar()
         
-        if last_month_predictions:
-            last_month_consumption = sum(p.consumo_predicho for p in last_month_predictions) / 30
+        if last_month_consumption:
+            last_month_consumption = float(last_month_consumption) / 30
             if last_month_consumption > 0:
                 consumption_change = round((total_consumption - last_month_consumption) / last_month_consumption * 100, 1)
             else:
@@ -627,29 +691,15 @@ def buildings_dashboard():
         else:
             consumption_change = 0
         
+        # Obtener todas las predicciones en una sola consulta
+        all_predictions = Prediction.query.all()
+        
         # Detalles de cada edificio
         buildings_details = []
         for building in buildings:
-            # Obtener predicciones para este edificio
-            building_predictions = Prediction.query.filter_by(building_id=building.id).all()
-            prediction_count = len(building_predictions)
-            
-            # Calcular promedios (si hay predicciones)
-            if building_predictions:
-                avg_consumption = sum(p.consumo_predicho for p in building_predictions) / prediction_count
-                avg_occupancy = sum(p.ocupacion for p in building_predictions) / prediction_count
-            else:
-                avg_consumption = 0
-                avg_occupancy = 0
-            
-            buildings_details.append({
-                'id': building.id,
-                'name': building.name,
-                'area': building.area,
-                'avg_consumption': round(avg_consumption, 2),
-                'avg_occupancy': round(avg_occupancy, 1),
-                'prediction_count': prediction_count
-            })
+            # Usar la función helper para obtener estadísticas del edificio
+            stats = get_building_stats(building, all_predictions)
+            buildings_details.append(stats)
         
         return render_template(
             'buildings_dashboard.html',

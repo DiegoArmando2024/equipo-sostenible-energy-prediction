@@ -1,13 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard de Edificios - UDEC{% endblock %}
-
-{% block extra_css %}
-<!-- Chart.js -->
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-{% endblock %}
+{% block title %}Gestión de Edificios - UDEC{% endblock %}
 
 {% block content %}
+<div class="row">
+    <div class="col-12">
         <h2>Gestión de Edificios</h2>
         <p class="lead">Administra los edificios para realizar predicciones de consumo energético.</p>
         
@@ -163,10 +160,5 @@
             </div>
         </div>
     </div>
-
-   {% endblock %}
-
-{% block extra_js %}
-<!-- Script para las gráficas -->
-<script src="{{ url_for('static', filename='js/consolidated_charts.js') }}"></script>
+</div>
 {% endblock %}
