@@ -1,4 +1,10 @@
 
+"""
+Utilidades para cargar y procesar datos de consumo energético.
+Este archivo proporciona compatibilidad con la versión anterior del código
+mientras se migra al enfoque centrado en la base de datos.
+"""
+
 import os
 import pandas as pd
 import logging

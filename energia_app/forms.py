@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, FloatField, TextAreaField, SelectField, SelectMultipleField, IntegerField, HiddenField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, NumberRange, Optional
 from energia_app.models.user import User, Building
 
 class LoginForm(FlaskForm):
@@ -45,10 +45,42 @@ class BuildingForm(FlaskForm):
                 raise ValidationError('Ya existe un edificio con este nombre.')
 
 class PredictionForm(FlaskForm):
+    """Formulario para realizar predicciones de consumo energético"""
+    
     buildings = SelectMultipleField('Edificios', coerce=int, 
-                                   validators=[DataRequired(message="Seleccione al menos un edificio")])
-    ocupacion = IntegerField('Nivel de ocupación (personas)', 
-                             validators=[DataRequired(), NumberRange(min=0, max=1000)])
+                                   validators=[DataRequired(message="Seleccione al menos un edificio")],
+                                   render_kw={"class": "form-select"})
+    
+    ocupacion = IntegerField('Nivel de ocupación (personas)',
+                            validators=[DataRequired(message="Ingrese un nivel de ocupación"),
+                                       NumberRange(min=1, message="La ocupación debe ser al menos 1")],
+                            default=50,
+                            render_kw={"class": "form-control"})
+    
+    # Cambiamos los valores para que empiecen en 1 en lugar de 0
+    dia_semana = SelectField('Día de la semana',
+                           choices=[(1, 'Lunes'), (2, 'Martes'), (3, 'Miércoles'), 
+                                   (4, 'Jueves'), (5, 'Viernes'), (6, 'Sábado'), (7, 'Domingo')],
+                           validators=[DataRequired(message="Seleccione un día de la semana")],
+                           coerce=int,
+                           default=1,  # Lunes = 1 ahora
+                           render_kw={"class": "form-select"})
+    
+    # Cambiamos las horas para que empiecen en 1 en lugar de 0
+    hora_dia = SelectField('Hora del día',
+                         choices=[(i+1, f"{i:02d}:00") for i in range(24)],  # i+1 para valores, pero mostramos 00:00, 01:00, etc.
+                         validators=[DataRequired(message="Seleccione una hora del día")],
+                         coerce=int,
+                         default=1,  # 00:00 = 1 ahora
+                         render_kw={"class": "form-select"})
+    
+    submit = SubmitField('Predecir consumo', 
+                         render_kw={"class": "btn btn-primary"})
+    
+class EnergyDataForm(FlaskForm):
+    building_id = SelectField('Edificio', coerce=int, validators=[Optional()])
+    area_edificio = FloatField('Área del edificio (m²)', validators=[DataRequired(), NumberRange(min=1)])
+    ocupacion = IntegerField('Ocupación (personas)', validators=[DataRequired(), NumberRange(min=0)])
     dia_semana = SelectField('Día de la semana', coerce=int, choices=[
         (0, 'Lunes'), (1, 'Martes'), (2, 'Miércoles'),
         (3, 'Jueves'), (4, 'Viernes'), (5, 'Sábado'), (6, 'Domingo')
@@ -56,4 +88,5 @@ class PredictionForm(FlaskForm):
     hora_dia = SelectField('Hora del día', coerce=int, choices=[
         (h, f'{h}:00') for h in range(24)
     ], validators=[DataRequired()])
-    submit = SubmitField('Predecir consumo')
+    consumo_energetico = FloatField('Consumo energético (kWh)', validators=[DataRequired(), NumberRange(min=0)])
+    submit = SubmitField('Guardar Registro')

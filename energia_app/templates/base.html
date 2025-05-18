@@ -36,7 +36,9 @@
                         <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="/dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/dataset' in request.path %}active{% endif %}" href="/dataset">Dataset</a>
+                        <a class="nav-link {% if 'data-management' in request.path %}active{% endif %}" href="{{ url_for('data_management') }}">
+                            <i class="bi bi-database"></i> Gestión de Datos
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if '/buildings' in request.path %}active{% endif %}" href="/buildings">Edificios</a>

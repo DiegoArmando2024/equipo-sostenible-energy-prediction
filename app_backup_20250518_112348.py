@@ -12,7 +12,6 @@ from sqlalchemy.sql import extract, func
 
 # Importar modelos y utilidades
 from energia_app.models import Energy_Model, preprocess_data
-from energia_app.models.preprocess import load_scaler, save_scaler 
 from energia_app.models.user import db, User, Building, Prediction
 from energia_app.utils.data_loader import load_csv_dataset, save_dataset, get_dataset_statistics
 from energia_app.forms import LoginForm, RegistrationForm, BuildingForm, PredictionForm , EnergyDataForm
@@ -34,12 +33,6 @@ app = Flask(__name__,
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-secreta-predeterminada')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///energia_app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'energia_app', 'data')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max-limit
-app.config['ALLOWED_EXTENSIONS'] = {'csv'}
-
-# Crear directorios necesarios
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Crear directorio de datos
 
 # Inicializar extensiones
 db.init_app(app)
@@ -56,252 +49,32 @@ def allowed_file(filename):
     """Verifica si la extensión del archivo es permitida"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
-import joblib
-import os
-import logging
-
-# Configurar logging
-logger = logging.getLogger(__name__)
-
-# Funciones de utilidad para manejo de modelos
-def save_model_file(model, model_path, model_dir=None):
-    """
-    Guarda un modelo en disco
+def ensure_model_trained():
+    """Asegura que el modelo está entrenado con datos de la base de datos"""
+    model = Energy_Model()
     
-    Args:
-        model: Modelo a guardar
-        model_path (str): Ruta donde guardar el modelo
-        model_dir (str, optional): Directorio donde guardar el modelo
+    # Si el modelo ya está entrenado, devolverlo
+    if model.trained:
+        return model
         
-    Returns:
-        bool: True si se guardó correctamente, False en caso contrario
-    """
-    try:
-        # Crear directorio si se especifica y no existe
-        if model_dir:
-            os.makedirs(model_dir, exist_ok=True)
-        elif not os.path.exists(os.path.dirname(model_path)):
-            os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            
-        joblib.dump(model, model_path)
-        logger.info(f"Modelo guardado en {model_path}")
-        return True
-    except Exception as e:
-        logger.error(f"Error al guardar el modelo: {str(e)}")
-        return False
-
-def load_model_file(model_path):
-    """
-    Carga un modelo desde disco
+    # Verificar si existen datos en la base de datos
+    energy_data_count = EnergyData.query.count()
     
-    Args:
-        model_path (str): Ruta del modelo
-        
-    Returns:
-        object: Modelo cargado o None si ocurre un error
-    """
+    if energy_data_count < 100:  # Umbral mínimo de datos
+        logger.error("No hay suficientes datos para entrenar el modelo")
+        raise ValueError("No hay suficientes datos para entrenar el modelo. Por favor, añada al menos 100 registros de datos mediante importación o ingreso manual.")
+    
+    # Usar datos de la base de datos para entrenar
     try:
-        if not os.path.exists(model_path):
-            logger.warning(f"Modelo no encontrado en '{model_path}'")
-            return None
-            
-        model = joblib.load(model_path)
-        logger.info(f"Modelo cargado desde {model_path}")
+        logger.info(f"Usando {energy_data_count} registros de la base de datos para entrenar el modelo")
+        data_df = EnergyData.export_to_df()
+        X, y = preprocess_data(data_df, training=True)
+        metrics = model.train(X, y)
+        logger.info(f"Modelo entrenado con éxito. Métricas: R² = {metrics['r2']:.4f}")
         return model
     except Exception as e:
-        logger.error(f"Error al cargar el modelo: {str(e)}")
-        return None
-    
-def load_scaler_local(scaler_path):
-    """Función local para cargar un escalador desde disco"""
-    import os
-    import joblib
-    import logging
-    
-    logger = logging.getLogger(__name__)
-    
-    try:
-        if not os.path.exists(scaler_path):
-            logger.warning(f"Escalador no encontrado en '{scaler_path}'")
-            return None
-            
-        scaler = joblib.load(scaler_path)
-        logger.info(f"Escalador cargado desde {scaler_path}")
-        return scaler
-    except Exception as e:
-        logger.error(f"Error al cargar el escalador: {str(e)}")
-        return None
-
-class Energy_Model:
-    """
-    Modelo de regresión lineal para predecir el consumo energético
-    basado en área del edificio, ocupación, día de la semana y hora del día.
-    """
-    
-    def __init__(self):
-        self.model = LinearRegression()
-        # IMPORTANTE: Inicializar el atributo 'trained' explícitamente
-        self.trained = False
-        
-        # Usar ruta absoluta para el modelo
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.model_dir = os.path.join(base_dir, 'models')
-        self.model_path = os.path.join(self.model_dir, 'energy_model.pkl')
-        
-        # Cargar modelo si existe
-        self._try_load_model()
-    
-    def _try_load_model(self):
-        """Intenta cargar el modelo existente"""
-        loaded_model = load_model_file(self.model_path)
-        if loaded_model:
-            self.model = loaded_model
-            # IMPORTANTE: Establecer trained=True cuando el modelo se carga correctamente
-            self.trained = True
-            logger.info("Modelo cargado exitosamente y marcado como entrenado")
-        else:
-            logger.warning("No se pudo cargar un modelo entrenado existente")
-            # Asegurar que trained=False si no se pudo cargar
-            self.trained = False
-    
-    def train(self, X, y, test_size=0.2, random_state=42):
-        """
-        Entrena el modelo con los datos proporcionados
-        
-        Args:
-            X (DataFrame): Características de entrada
-            y (Series): Variable objetivo (consumo energético)
-            test_size (float): Proporción de datos para prueba
-            random_state (int): Semilla para reproducibilidad
-        
-        Returns:
-            dict: Métricas de rendimiento del modelo
-        """
-        try:
-            # Dividir datos en entrenamiento y prueba
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=test_size, random_state=random_state
-            )
-            
-            # Entrenar modelo
-            self.model.fit(X_train, y_train)
-            # IMPORTANTE: Establecer trained=True después de entrenar exitosamente
-            self.trained = True
-            
-            # Evaluar modelo
-            y_pred = self.predict(X_test)
-            
-            # Calcular métricas
-            metrics = self._calculate_metrics(y_test, y_pred)
-            
-            # Guardar modelo entrenado
-            self.save_model()
-            
-            logger.info(f"Modelo entrenado. Métricas: MSE={metrics['mse']:.4f}, R²={metrics['r2']:.4f}")
-            return metrics
-            
-        except Exception as e:
-            logger.error(f"Error al entrenar el modelo: {str(e)}")
-            # IMPORTANTE: Asegurar que trained=False si el entrenamiento falla
-            self.trained = False
-            raise
-    
-    def _calculate_metrics(self, y_true, y_pred):
-        """
-        Calcula métricas de rendimiento del modelo
-        
-        Args:
-            y_true: Valores reales
-            y_pred: Valores predichos
-            
-        Returns:
-            dict: Métricas de rendimiento
-        """
-        mse = mean_squared_error(y_true, y_pred)
-        rmse = np.sqrt(mse)
-        r2 = r2_score(y_true, y_pred)
-        
-        return {
-            'mse': mse,
-            'rmse': rmse,
-            'r2': r2,
-            'coefficients': self.model.coef_.tolist(),
-            'intercept': float(self.model.intercept_)
-        }
-    
-    def predict(self, X):
-        """
-        Realiza predicciones con el modelo entrenado y asegura valores positivos
-        
-        Args:
-            X (DataFrame): Características de entrada
-        
-        Returns:
-            array: Predicciones de consumo energético (siempre >= 0)
-        """
-        # IMPORTANTE: Verificar explícitamente el atributo trained
-        if not hasattr(self, 'trained') or not self.trained:
-            raise ValueError("El modelo no ha sido entrenado aún. Verifique si el archivo del modelo existe.")
-        
-        try:
-            # Realizar predicción base con el modelo
-            predictions = self.model.predict(X)
-            
-            # Asegurar que todas las predicciones sean no-negativas
-            predictions = np.maximum(predictions, 0)
-            
-            # Establecer un consumo mínimo razonable
-            min_consumption = 0.1  # Consumo mínimo en kWh
-            predictions = np.maximum(predictions, min_consumption)
-            
-            return predictions
-        except Exception as e:
-            logger.error(f"Error al realizar predicción: {str(e)}")
-            raise
-    
-    def save_model(self):
-        """Guarda el modelo entrenado en disco"""
-        return save_model_file(self.model, self.model_path, self.model_dir)
-    
-    def load_model(self):
-        """Carga el modelo entrenado desde disco"""
-        loaded_model = load_model_file(self.model_path)
-        if loaded_model:
-            self.model = loaded_model
-            # IMPORTANTE: Establecer trained=True cuando el modelo se carga correctamente
-            self.trained = True
-            return True
-        # IMPORTANTE: Asegurar que trained=False si no se pudo cargar
-        self.trained = False
-        return False
-    
-    def get_feature_importance(self):
-        """
-        Obtiene la importancia relativa de cada característica
-        
-        Returns:
-            ndarray: Importancia de cada característica
-        """
-        # IMPORTANTE: Verificar explícitamente el atributo trained
-        if not hasattr(self, 'trained') or not self.trained:
-            raise ValueError("El modelo no ha sido entrenado aún.")
-        
-        try:
-            # Obtener coeficientes absolutos
-            importance = np.abs(self.model.coef_)
-            
-            # Normalizar para obtener importancia relativa
-            importance = importance / np.sum(importance)
-            
-            return importance
-        except Exception as e:
-            logger.error(f"Error al calcular importancia de características: {str(e)}")
-            raise
+        logger.error(f"Error al entrenar el modelo: {str(e)}")
+        raise
 
 def generate_recommendations(area, ocupacion, dia_semana, hora_dia, prediction=None):
     """
@@ -515,49 +288,10 @@ def delete_building(building_id):
     
     return redirect(url_for('manage_buildings'))
 
-def ensure_model_trained():
-    """Asegura que el modelo está entrenado con datos de la base de datos"""
-    try:
-        model = Energy_Model()
-        
-        # Verificar si el modelo ya está entrenado
-        # Asegurarnos de que el atributo 'trained' existe y es True
-        if hasattr(model, 'trained') and model.trained:
-            logger.info("Modelo cargado y entrenado correctamente")
-            return model
-            
-        # Si llegamos aquí, el modelo no está entrenado o el atributo 'trained' no existe
-        logger.warning("Modelo no entrenado o atributo 'trained' no existe, iniciando entrenamiento.")
-        
-        # Verificar si existen datos en la base de datos
-        energy_data_count = EnergyData.query.count()
-        
-        if energy_data_count < 100:  # Umbral mínimo de datos
-            logger.error("No hay suficientes datos para entrenar el modelo")
-            raise ValueError("No hay suficientes datos para entrenar el modelo. Por favor, añada al menos 100 registros de datos mediante importación o ingreso manual.")
-        
-        # Usar datos de la base de datos para entrenar
-        logger.info(f"Usando {energy_data_count} registros de la base de datos para entrenar el modelo")
-        data_df = EnergyData.export_to_df()
-        X, y = preprocess_data(data_df, training=True)
-        metrics = model.train(X, y)
-        
-        # Verificar nuevamente que el modelo está entrenado
-        if not hasattr(model, 'trained') or not model.trained:
-            logger.error("El modelo no se marcó como entrenado después del entrenamiento")
-            raise ValueError("Error al entrenar el modelo. Verifique los logs para más detalles.")
-            
-        logger.info(f"Modelo entrenado con éxito. Métricas: R² = {metrics['r2']:.4f}")
-        return model
-    except Exception as e:
-        logger.error(f"Error en ensure_model_trained: {str(e)}")
-        raise ValueError(f"Error al verificar/entrenar el modelo: {str(e)}")
-
 # Actualizar la ruta de predicción para usar edificios
 @app.route('/predict', methods=['GET', 'POST'])
 @login_required
 def predict():
-    """Ruta para realizar predicciones de consumo energético"""
     # Obtener edificios activos para el formulario
     active_buildings = Building.query.filter_by(active=True).all()
     
@@ -565,114 +299,98 @@ def predict():
     form = PredictionForm()
     form.buildings.choices = [(b.id, b.name) for b in active_buildings]
     
-    if request.method == 'POST':
-        # Verificar edificios seleccionados
-        if not form.buildings.data:
+    if request.method == 'POST' and form.validate_on_submit():
+        # Obtener parámetros del formulario
+        selected_building_ids = form.buildings.data
+        ocupacion = form.ocupacion.data
+        dia_semana = form.dia_semana.data
+        hora_dia = form.hora_dia.data
+        
+        # Verificar que se seleccionaron edificios
+        if not selected_building_ids:
             flash('Por favor, seleccione al menos un edificio.')
             return render_template('prediction.html', form=form, buildings=active_buildings)
         
-        # Validar resto del formulario y procesar
-        if form.validate_on_submit():
+        # Obtener los edificios seleccionados
+        selected_buildings = Building.query.filter(Building.id.in_(selected_building_ids)).all()
+        
+        # Asegurar que el modelo está entrenado
+        try:
+            model = ensure_model_trained()
+        except ValueError as e:
+            flash(str(e))
+            return render_template('prediction.html', form=form, buildings=active_buildings)
+        
+        # Realizar predicciones para cada edificio
+        predictions = []
+        total_consumption = 0
+        
+        for building in selected_buildings:
+            # Crear DataFrame con los datos de entrada
+            input_data = pd.DataFrame({
+                'area_edificio': [building.area],
+                'ocupacion': [ocupacion],
+                'dia_semana': [dia_semana],
+                'hora_dia': [hora_dia]
+            })
+            
             try:
-                # Obtener parámetros del formulario
-                selected_building_ids = form.buildings.data
-                ocupacion = form.ocupacion.data
+                # Preprocesar datos de entrada
+                X, _ = preprocess_data(input_data, training=False)
                 
-                # Ajustar valores para la lógica de negocio (restar 1 para mantener la compatibilidad)
-                dia_semana = form.dia_semana.data - 1  # Convertir 1-7 a 0-6
-                hora_dia = form.hora_dia.data - 1      # Convertir 1-24 a 0-23
+                # Realizar predicción
+                prediction_value = model.predict(X)[0]
                 
-                # Obtener los edificios seleccionados
-                selected_buildings = Building.query.filter(Building.id.in_(selected_building_ids)).all()
+                # Redondear predicción a 2 decimales
+                prediction_value = round(float(prediction_value), 2)
                 
-                # Asegurar que el modelo está entrenado
-                try:
-                    model = ensure_model_trained()
-                except ValueError as e:
-                    flash(str(e))
-                    return render_template('prediction.html', form=form, buildings=active_buildings)
+                # Generar recomendaciones para este edificio
+                recommendations = generate_recommendations(building.area, ocupacion, dia_semana, hora_dia, prediction_value)
                 
-                # Realizar predicciones para cada edificio
-                predictions = []
-                total_consumption = 0
+                # Guardar la predicción en la base de datos
+                new_prediction = Prediction(
+                    building_id=building.id,
+                    timestamp=datetime.now(),
+                    ocupacion=ocupacion,
+                    dia_semana=dia_semana,
+                    hora_dia=hora_dia,
+                    consumo_predicho=prediction_value
+                )
+                db.session.add(new_prediction)
                 
-                for building in selected_buildings:
-                    # Crear DataFrame con los datos de entrada
-                    input_data = pd.DataFrame({
-                        'area_edificio': [building.area],
-                        'ocupacion': [ocupacion],
-                        'dia_semana': [dia_semana],  # Usamos el valor ajustado (0-6)
-                        'hora_dia': [hora_dia]       # Usamos el valor ajustado (0-23)
-                    })
-                    
-                    try:
-                        # Preprocesar datos de entrada
-                        X, _ = preprocess_data(input_data, training=False)
-                        
-                        # Realizar predicción y validar el resultado
-                        prediction_value = model.predict(X)[0]
-                        
-                        # Redondear predicción a 2 decimales
-                        prediction_value = round(float(prediction_value), 2)
-                        
-                        # Generar recomendaciones basadas en el consumo REAL (positivo)
-                        recommendations = generate_recommendations(building.area, ocupacion, dia_semana, hora_dia, prediction_value)
-                        
-                        # Guardar la predicción en la base de datos
-                        new_prediction = Prediction(
-                            building_id=building.id,
-                            timestamp=datetime.now(),
-                            ocupacion=ocupacion,
-                            dia_semana=dia_semana,  # Guardamos el valor ajustado (0-6)
-                            hora_dia=hora_dia,      # Guardamos el valor ajustado (0-23)
-                            consumo_predicho=prediction_value
-                        )
-                        db.session.add(new_prediction)
-                        
-                        # Añadir a la lista de predicciones
-                        predictions.append({
-                            'building_id': building.id,
-                            'building_name': building.name,
-                            'area': building.area,
-                            'consumption': prediction_value,
-                            'recommendations': recommendations
-                        })
-                        
-                        # Acumular consumo total
-                        total_consumption += prediction_value
-                        
-                    except Exception as e:
-                        logger.error(f"Error al realizar predicción para edificio {building.name}: {str(e)}")
-                        flash(f'Error al procesar predicción para {building.name}: {str(e)}')
+                # Añadir a la lista de predicciones
+                predictions.append({
+                    'building_id': building.id,
+                    'building_name': building.name,
+                    'area': building.area,
+                    'consumption': prediction_value,
+                    'recommendations': recommendations
+                })
                 
-                # Guardar cambios en la base de datos
-                db.session.commit()
+                # Acumular consumo total
+                total_consumption += prediction_value
                 
-                # Redondear consumo total
-                total_consumption = round(total_consumption, 2)
-                
-                # Renderizar template con resultados
-                return render_template('prediction.html', 
-                                      form=form,
-                                      buildings=active_buildings,
-                                      predictions=predictions,
-                                      total_consumption=total_consumption,
-                                      ocupacion=ocupacion,
-                                      dia_semana=dia_semana,  # Pasamos el valor ajustado (0-6)
-                                      hora_dia=hora_dia)      # Pasamos el valor ajustado (0-23)
-                                      
             except Exception as e:
-                # Manejar cualquier excepción no capturada
-                logger.error(f"Error en predicción: {str(e)}")
-                flash(f'Error al procesar predicción: {str(e)}')
-        else:
-            # Mostrar errores de validación
-            print(f"Errores de validación: {form.errors}")
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(f'Error en campo {field}: {error}')
+                logger.error(f"Error al realizar predicción para edificio {building.name}: {str(e)}")
+                flash(f'Error al procesar predicción para {building.name}: {str(e)}')
+        
+        # Guardar cambios en la base de datos
+        db.session.commit()
+        
+        # Redondear consumo total
+        total_consumption = round(total_consumption, 2)
+        
+        # Renderizar template con resultados
+        return render_template('prediction.html', 
+                              form=form,
+                              buildings=active_buildings,
+                              predictions=predictions,
+                              total_consumption=total_consumption,
+                              ocupacion=ocupacion,
+                              dia_semana=dia_semana,
+                              hora_dia=hora_dia)
     
-    # Si es GET o hubo errores, mostrar formulario
+    # Si es GET, mostrar formulario
     return render_template('prediction.html', form=form, buildings=active_buildings)
 
 @app.route('/dashboard')

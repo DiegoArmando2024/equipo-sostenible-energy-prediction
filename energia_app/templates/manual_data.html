@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Ingreso Manual de Datos - UDEC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Ingreso Manual de Datos</h2>
+        <p class="lead">Registra manualmente datos de consumo energético para edificios.</p>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Nuevo Registro</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('manual_data') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                {{ form.building_id.label(class="form-label") }}
+                                {{ form.building_id(class="form-select") }}
+                                {% for error in form.building_id.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                                <div class="form-text">Opcional. Si selecciona un edificio, el área se llenará automáticamente.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.area_edificio.label(class="form-label") }}
+                                {{ form.area_edificio(class="form-control") }}
+                                {% for error in form.area_edificio.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.ocupacion.label(class="form-label") }}
+                                {{ form.ocupacion(class="form-control") }}
+                                {% for error in form.ocupacion.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.dia_semana.label(class="form-label") }}
+                                        {{ form.dia_semana(class="form-select") }}
+                                        {% for error in form.dia_semana.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.hora_dia.label(class="form-label") }}
+                                        {{ form.hora_dia(class="form-select") }}
+                                        {% for error in form.hora_dia.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.consumo_energetico.label(class="form-label") }}
+                                {{ form.consumo_energetico(class="form-control") }}
+                                {% for error in form.consumo_energetico.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Carga Masiva de Datos</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>También puede cargar múltiples registros a través de un archivo CSV:</p>
+                        <form method="POST" action="{{ url_for('manual_data_upload') }}" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Archivo CSV</label>
+                                <input type="file" class="form-control" id="file" name="file">
+                                <div class="form-text">El archivo debe tener las columnas: area_edificio, ocupacion, dia_semana, hora_dia, consumo_energetico</div>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="retrain" name="retrain" value="yes">
+                                <label class="form-check-label" for="retrain">
+                                    Reentrenar modelo después de cargar
+                                </label>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Cargar CSV</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Últimos registros</h5>
+                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-sm btn-light">
+                                <i class="bi bi-download"></i> Exportar datos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if energy_data %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Edificio</th>
+                                            <th>Área (m²)</th>
+                                            <th>Ocupación</th>
+                                            <th>Día/Hora</th>
+                                            <th>Consumo (kWh)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for data in energy_data %}
+                                        <tr>
+                                            <td>{{ data.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            <td>
+                                                {% if data.building %}
+                                                    {{ data.building.name }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ data.area_edificio }}</td>
+                                            <td>{{ data.ocupacion }}</td>
+                                            <td>
+                                                {% set dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] %}
+                                                {{ dias[data.dia_semana] }} {{ data.hora_dia }}:00
+                                            </td>
+                                            <td>{{ data.consumo_energetico }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <h5><i class="bi bi-exclamation-triangle"></i> No hay datos registrados</h5>
+                                <p>Aún no hay registros de consumo energético. Utilice el formulario o cargue un archivo CSV para comenzar.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Acciones adicionales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a href="{{ url_for('retrain_model') }}" class="btn btn-primary" onclick="return confirm('¿Está seguro de que desea reentrenar el modelo con todos los datos disponibles?')">
+                                        <i class="bi bi-arrow-repeat"></i> Reentrenar modelo
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a href="{{ url_for('export_to_dataset') }}" class="btn btn-secondary">
+                                        <i class="bi bi-file-earmark-arrow-down"></i> Exportar como dataset
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Script para autocompletar el área cuando se selecciona un edificio
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos de edificios del servidor
+    const buildings = {{ buildings_data|tojson }};
+    
+    // Elementos del formulario
+    const buildingSelect = document.getElementById('building_id');
+    const areaInput = document.getElementById('area_edificio');
+    
+    // Cuando cambia el edificio seleccionado
+    buildingSelect.addEventListener('change', function() {
+        const buildingId = parseInt(this.value);
+        
+        if (buildingId) {
+            // Buscar el edificio seleccionado
+            const building = buildings.find(b => b.id === buildingId);
+            if (building) {
+                // Autocompletar el área
+                areaInput.value = building.area;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

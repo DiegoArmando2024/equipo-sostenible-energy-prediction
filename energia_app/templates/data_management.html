@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Datos - UDEC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Gestión de Datos</h2>
+        <p class="lead">Administra los datos utilizados para predicciones de consumo energético.</p>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <ul class="nav nav-tabs mb-4" id="dataTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="true">
+                    <i class="bi bi-pencil-square"></i> Ingreso Manual
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="data-import-tab" data-bs-toggle="tab" data-bs-target="#data-import" type="button" role="tab" aria-controls="data-import" aria-selected="false">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Importar Datos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="records-tab" data-bs-toggle="tab" data-bs-target="#records" type="button" role="tab" aria-controls="records" aria-selected="false">
+                    <i class="bi bi-table"></i> Registros <span class="badge bg-primary">{{ total_manual_records }}</span>
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="dataTabContent">
+            <!-- Pestaña de Ingreso Manual -->
+            <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Nuevo Registro</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ url_for('data_management') }}">
+                                    {{ manual_form.hidden_tag() }}
+                                    
+                                    <div class="mb-3">
+                                        {{ manual_form.building_id.label(class="form-label") }}
+                                        {{ manual_form.building_id(class="form-select") }}
+                                        {% for error in manual_form.building_id.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                        <div class="form-text">Opcional. Si selecciona un edificio, el área se llenará automáticamente.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        {{ manual_form.area_edificio.label(class="form-label") }}
+                                        {{ manual_form.area_edificio(class="form-control") }}
+                                        {% for error in manual_form.area_edificio.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        {{ manual_form.ocupacion.label(class="form-label") }}
+                                        {{ manual_form.ocupacion(class="form-control") }}
+                                        {% for error in manual_form.ocupacion.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                {{ manual_form.dia_semana.label(class="form-label") }}
+                                                {{ manual_form.dia_semana(class="form-select") }}
+                                                {% for error in manual_form.dia_semana.errors %}
+                                                <div class="text-danger">{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                {{ manual_form.hora_dia.label(class="form-label") }}
+                                                {{ manual_form.hora_dia(class="form-select") }}
+                                                {% for error in manual_form.hora_dia.errors %}
+                                                <div class="text-danger">{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        {{ manual_form.consumo_energetico.label(class="form-label") }}
+                                        {{ manual_form.consumo_energetico(class="form-control") }}
+                                        {% for error in manual_form.consumo_energetico.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        {{ manual_form.submit(class="btn btn-primary") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-7">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Últimos registros</h5>
+                                    <a href="{{ url_for('export_energy_data') }}" class="btn btn-sm btn-light">
+                                        <i class="bi bi-download"></i> Exportar datos
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                {% if energy_data %}
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Fecha</th>
+                                                    <th>Edificio</th>
+                                                    <th>Área (m²)</th>
+                                                    <th>Ocupación</th>
+                                                    <th>Día/Hora</th>
+                                                    <th>Consumo (kWh)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for data in energy_data %}
+                                                <tr>
+                                                    <td>{{ data.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                                                    <td>
+                                                        {% if data.building %}
+                                                            {{ data.building.name }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ data.area_edificio }}</td>
+                                                    <td>{{ data.ocupacion }}</td>
+                                                    <td>
+                                                        {% set dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] %}
+                                                        {{ dias[data.dia_semana] }} {{ data.hora_dia }}:00
+                                                    </td>
+                                                    <td>{{ data.consumo_energetico }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <h5><i class="bi bi-exclamation-triangle"></i> No hay datos registrados</h5>
+                                        <p>Aún no hay registros de consumo energético. Utilice el formulario para comenzar a registrar datos.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Acciones adicionales</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-grid">
+                                            <form method="POST" action="{{ url_for('retrain_model') }}" style="display: inline;">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-arrow-repeat"></i> Reentrenar modelo
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-grid">
+                                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-secondary">
+                                                <i class="bi bi-file-earmark-arrow-down"></i> Exportar datos
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pestaña de Importación de Datos -->
+            <div class="tab-pane fade" id="data-import" role="tabpanel" aria-labelledby="data-import-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Importar Datos desde CSV</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Importe datos de consumo energético desde un archivo CSV:</p>
+                                <form method="POST" action="{{ url_for('upload_energy_data') }}" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="file" class="form-label">Archivo CSV</label>
+                                        <input type="file" class="form-control" id="file" name="file" required>
+                                        <div class="form-text">El archivo debe tener las columnas: area_edificio, ocupacion, dia_semana, hora_dia, consumo_energetico</div>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="retrain" name="retrain" value="yes" checked>
+                                        <label class="form-check-label" for="retrain">
+                                            <i class="bi bi-arrow-repeat"></i> Reentrenar modelo después de importar
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-upload"></i> Importar Datos
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Información de Datos</h5>
+                            </div>
+                            <div class="card-body">
+                                <h6>Estadísticas de Datos</h6>
+                                
+                                {% if dataset_stats %}
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-sm">
+                                                <tr>
+                                                    <th>Número de registros</th>
+                                                    <td>{{ total_manual_records }}</td>
+                                                </tr>
+                                                {% if dataset_stats.area_min is defined %}
+                                                <tr>
+                                                    <th>Área mínima</th>
+                                                    <td>{{ dataset_stats.area_min }} m²</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Área máxima</th>
+                                                    <td>{{ dataset_stats.area_max }} m²</td>
+                                                </tr>
+                                                {% endif %}
+                                                {% if dataset_stats.consumo_min is defined %}
+                                                <tr>
+                                                    <th>Consumo mínimo</th>
+                                                    <td>{{ dataset_stats.consumo_min }} kWh</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Consumo máximo</th>
+                                                    <td>{{ dataset_stats.consumo_max }} kWh</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Consumo promedio</th>
+                                                    <td>{{ "%.2f"|format(dataset_stats.consumo_mean) }} kWh</td>
+                                                </tr>
+                                                {% endif %}
+                                            </table>
+                                        </div>
+                                        {% if dataset_stats.correlaciones is defined %}
+                                        <div class="col-md-6">
+                                            <h6>Correlaciones</h6>
+                                            <table class="table table-sm">
+                                                <tr>
+                                                    <th>Área - Consumo</th>
+                                                    <td>{{ "%.2f"|format(dataset_stats.correlaciones.area_consumo) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Ocupación - Consumo</th>
+                                                    <td>{{ "%.2f"|format(dataset_stats.correlaciones.ocupacion_consumo) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Día - Consumo</th>
+                                                    <td>{{ "%.2f"|format(dataset_stats.correlaciones.dia_consumo) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Hora - Consumo</th>
+                                                    <td>{{ "%.2f"|format(dataset_stats.correlaciones.hora_consumo) }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <h5><i class="bi bi-info-circle"></i> No hay datos suficientes</h5>
+                                        <p>Aún no hay suficientes datos para generar estadísticas. Importe datos o añada registros manualmente.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Acciones</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-grid">
+                                            <form method="POST" action="{{ url_for('retrain_model') }}" style="display: inline;" onsubmit="return confirm('¿Está seguro de que desea reentrenar el modelo con todos los datos disponibles?')">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-arrow-repeat"></i> Reentrenar modelo
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-grid">
+                                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-secondary">
+                                                <i class="bi bi-file-earmark-arrow-down"></i> Exportar datos
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pestaña de Registros Completos -->
+            <div class="tab-pane fade" id="records" role="tabpanel" aria-labelledby="records-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Todos los registros</h5>
+                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-sm btn-light">
+                                <i class="bi bi-download"></i> Exportar todos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if total_manual_records > 0 %}
+                            <p>Total: {{ total_manual_records }} registros almacenados en la base de datos</p>
+                            <div class="alert alert-info">
+                                <p>Esta sección muestra todos los registros almacenados en la base de datos. Para ver una tabla completa, utilice el botón "Exportar todos".</p>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar...">
+                                        <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <button class="btn btn-danger" onclick="if(confirm('¿Está seguro que desea eliminar todos los registros? Esta acción no se puede deshacer.')) { window.location.href='{{ url_for('delete_all_energy_data') }}'; }">
+                                        <i class="bi bi-trash"></i> Eliminar todos los registros
+                                    </button>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <h5><i class="bi bi-exclamation-triangle"></i> No hay registros</h5>
+                                <p>Aún no hay registros de consumo energético almacenados en la base de datos.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Script para autocompletar el área cuando se selecciona un edificio
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos de edificios del servidor
+    const buildings = {{ buildings_data|tojson }};
+    
+    // Elementos del formulario
+    const buildingSelect = document.getElementById('building_id');
+    const areaInput = document.getElementById('area_edificio');
+    
+    // Cuando cambia el edificio seleccionado
+    if (buildingSelect) {
+        buildingSelect.addEventListener('change', function() {
+            const buildingId = parseInt(this.value);
+            
+            if (buildingId) {
+                // Buscar el edificio seleccionado
+                const building = buildings.find(b => b.id === buildingId);
+                if (building) {
+                    // Autocompletar el área
+                    areaInput.value = building.area;
+                }
+            }
+        });
+    }
+    
+    // Activar pestaña específica si viene de un enlace con hash
+    const hash = window.location.hash;
+    if (hash) {
+        const tabId = hash.substring(1);
+        const tab = document.getElementById(`${tabId}-tab`);
+        if (tab) {
+            const bsTab = new bootstrap.Tab(tab);
+            bsTab.show();
+        }
+    }
+});
+</script>
+{% endblock %}

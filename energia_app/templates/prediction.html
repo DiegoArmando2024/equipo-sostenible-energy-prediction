@@ -53,17 +53,17 @@
                 <label for="dia_semana" class="form-label">
                     <i class="bi bi-calendar3"></i> Día de la semana
                 </label>
-                {{ form.dia_semana(class="form-control") }}
+                {{ form.dia_semana(class="form-select") }}
                 {% for error in form.dia_semana.errors %}
                 <div class="text-danger">{{ error }}</div>
                 {% endfor %}
             </div>
-            
+
             <div class="mb-3">
                 <label for="hora_dia" class="form-label">
                     <i class="bi bi-clock"></i> Hora del día
                 </label>
-                {{ form.hora_dia(class="form-control") }}
+                {{ form.hora_dia(class="form-select") }}
                 {% for error in form.hora_dia.errors %}
                 <div class="text-danger">{{ error }}</div>
                 {% endfor %}
@@ -127,14 +127,9 @@
                                     {{ days[dia_semana] }}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-clock fs-4 me-2 text-primary"></i>
                             <div>
                                 <small class="text-muted">Hora del día</small>
-                                <div>{{ hora_dia }}:00</div>
+                                <div>{{ "%02d"|format(hora_dia) }}:00</div>
                             </div>
                         </div>
                     </div>
