@@ -17,6 +17,26 @@ from energia_app.models.user import db, User, Building, Prediction
 from energia_app.utils.data_loader import load_csv_dataset, save_dataset, get_dataset_statistics
 from energia_app.forms import LoginForm, RegistrationForm, BuildingForm, PredictionForm , EnergyDataForm
 from energia_app.models.energy_data import EnergyData
+from energia_app.services.email_service import EmailService, setup_scheduled_emails
+from energia_app.services.encryption_service import EncryptionService, JWTService
+from energia_app.services.support_service import SupportService
+from energia_app.api.support_routes import support_bp
+
+# Después de crear la app
+email_service = EmailService(app)
+encryption_service = EncryptionService(app)
+
+# Registrar blueprints
+app.register_blueprint(support_bp)
+
+# Configurar tareas programadas
+setup_scheduled_emails(app)
+
+# Agregar nuevas rutas
+@app.route('/support')
+@login_required
+def support_tickets():
+    return render_template('support/tickets.html')
 
 
 # Configurar logging

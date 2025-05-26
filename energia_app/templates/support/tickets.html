@@ -1,0 +1,768 @@
+<!-- energia_app/templates/support/tickets.html -->
+{% extends "base.html" %}
+
+{% block title %}Mesa de Ayuda - Tickets de Soporte{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ticket-status-badge {
+        font-size: 0.8em;
+        padding: 4px 8px;
+    }
+    .priority-indicator {
+        width: 4px;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+    .ticket-card {
+        position: relative;
+        transition: transform 0.2s;
+    }
+    .ticket-card:hover {
+        transform: translateY(-2px);
+    }
+    .chat-container {
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        background-color: #f8f9fa;
+    }
+    .message-bubble {
+        max-width: 70%;
+        margin: 10px 0;
+        padding: 10px 15px;
+        border-radius: 18px;
+        word-wrap: break-word;
+    }
+    .message-sent {
+        background-color: #007bff;
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+    .message-received {
+        background-color: white;
+        color: #333;
+        border: 1px solid #dee2e6;
+        margin-right: auto;
+    }
+    .message-system {
+        background-color: #e9ecef;
+        color: #6c757d;
+        text-align: center;
+        font-style: italic;
+        margin: 5px auto;
+        max-width: 80%;
+    }
+    .unread-count {
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.75em;
+        min-width: 18px;
+        text-align: center;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-headset"></i> Mesa de Ayuda</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTicketModal">
+                    <i class="bi bi-plus-lg"></i> Nuevo Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Lista de Tickets -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Tickets de Soporte</h5>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-light btn-sm filter-btn active" data-filter="all">
+                                Todos
+                            </button>
+                            <button class="btn btn-outline-light btn-sm filter-btn" data-filter="open">
+                                Abiertos
+                            </button>
+                            <button class="btn btn-outline-light btn-sm filter-btn" data-filter="in_progress">
+                                En Progreso
+                            </button>
+                            <button class="btn btn-outline-light btn-sm filter-btn" data-filter="resolved">
+                                Resueltos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="ticketsList">
+                        <!-- Los tickets se cargarán aquí dinámicamente -->
+                        <div class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando tickets...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Paginación -->
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center" id="ticketsPagination">
+                    <!-- Paginación se generará dinámicamente -->
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Panel Lateral -->
+        <div class="col-md-4">
+            <!-- Estadísticas -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-graph-up"></i> Estadísticas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-0" id="totalTickets">0</h4>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning mb-0" id="openTickets">0</h4>
+                            <small class="text-muted">Abiertos</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-info mb-0" id="inProgressTickets">0</h4>
+                                <small class="text-muted">En Progreso</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-0" id="resolvedTickets">0</h4>
+                            <small class="text-muted">Resueltos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Rápido -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Chat Rápido</h6>
+                        <span class="unread-count" id="unreadCount">0</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="usersList">
+                        <!-- Lista de usuarios se cargará aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Ticket -->
+<div class="modal fade" id="newTicketModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-lg"></i> Nuevo Ticket de Soporte</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="newTicketForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="ticketTitle" class="form-label">Título del Ticket</label>
+                                <input type="text" class="form-control" id="ticketTitle" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="ticketPriority" class="form-label">Prioridad</label>
+                                <select class="form-select" id="ticketPriority">
+                                    <option value="low">Baja</option>
+                                    <option value="medium" selected>Media</option>
+                                    <option value="high">Alta</option>
+                                    <option value="urgent">Urgente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ticketCategory" class="form-label">Categoría</label>
+                        <select class="form-select" id="ticketCategory" required>
+                            <option value="">Seleccione una categoría</option>
+                            <option value="bug">Error del Sistema</option>
+                            <option value="feature">Solicitud de Funcionalidad</option>
+                            <option value="support">Soporte Técnico</option>
+                            <option value="account">Problemas de Cuenta</option>
+                            <option value="data">Problemas con Datos</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ticketDescription" class="form-label">Descripción Detallada</label>
+                        <textarea class="form-control" id="ticketDescription" rows="6" 
+                                  placeholder="Describe el problema o solicitud con el mayor detalle posible..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ticketAttachment" class="form-label">Archivos Adjuntos (Opcional)</label>
+                        <input type="file" class="form-control" id="ticketAttachment" multiple 
+                               accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.txt">
+                        <div class="form-text">Formatos permitidos: JPG, PNG, PDF, DOC, TXT. Máximo 10MB por archivo.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Crear Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalle de Ticket -->
+<div class="modal fade" id="ticketDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="ticketDetailTitle">Ticket #UDEC-2025-123456</h5>
+                    <small class="text-muted" id="ticketDetailInfo">Creado por Usuario el 01/01/2025</small>
+                </div>
+                <div>
+                    <span class="badge me-2" id="ticketDetailStatus">Abierto</span>
+                    <span class="badge" id="ticketDetailPriority">Media</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Mensajes del Ticket -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-chat-left"></i> Conversación</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="ticketMessages" class="chat-container">
+                                    <!-- Mensajes se cargarán aquí -->
+                                </div>
+                                
+                                <!-- Formulario de respuesta -->
+                                <form id="replyForm" class="mt-3">
+                                    <div class="mb-3">
+                                        <textarea class="form-control" id="replyMessage" rows="3" 
+                                                  placeholder="Escribe tu respuesta..."></textarea>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="internalMessage">
+                                            <label class="form-check-label" for="internalMessage">
+                                                Mensaje interno (solo admins)
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-send"></i> Enviar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Información del Ticket -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <strong>Estado:</strong>
+                                    <select class="form-select form-select-sm mt-1" id="statusSelect">
+                                        <option value="open">Abierto</option>
+                                        <option value="in_progress">En Progreso</option>
+                                        <option value="resolved">Resuelto</option>
+                                        <option value="closed">Cerrado</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Categoría:</strong>
+                                    <span id="ticketCategory">-</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Creado:</strong>
+                                    <span id="ticketCreated">-</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Última actualización:</strong>
+                                    <span id="ticketUpdated">-</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Asignado a:</strong>
+                                    <select class="form-select form-select-sm mt-1" id="assigneeSelect">
+                                        <option value="">Sin asignar</option>
+                                        <!-- Opciones se cargarán dinámicamente -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Archivos Adjuntos -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-paperclip"></i> Archivos Adjuntos</h6>
+                            </div>
+                            <div class="card-body" id="ticketAttachments">
+                                <p class="text-muted">No hay archivos adjuntos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" id="resolveTicketBtn">
+                    <i class="bi bi-check-lg"></i> Marcar como Resuelto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chat -->
+<div class="modal fade" id="chatModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-dots"></i> Chat con <span id="chatUserName">Usuario</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="chatMessages" class="chat-container" style="height: 400px;">
+                    <!-- Mensajes de chat se cargarán aquí -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form id="chatForm" class="w-100">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="chatInput" 
+                               placeholder="Escribe un mensaje..." autocomplete="off">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class SupportSystem {
+    constructor() {
+        this.currentPage = 1;
+        this.currentFilter = 'all';
+        this.currentTicketId = null;
+        this.currentChatUserId = null;
+        
+        this.initializeEventListeners();
+        this.loadTickets();
+        this.loadUsers();
+        this.updateUnreadCount();
+        
+        // Actualizar cada 30 segundos
+        setInterval(() => {
+            this.updateUnreadCount();
+        }, 30000);
+    }
+    
+    initializeEventListeners() {
+        // Filtros de tickets
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilter = e.target.dataset.filter;
+                this.currentPage = 1;
+                this.loadTickets();
+            });
+        });
+        
+        // Formulario nuevo ticket
+        document.getElementById('newTicketForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createTicket();
+        });
+        
+        // Formulario de respuesta
+        document.getElementById('replyForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.replyToTicket();
+        });
+        
+        // Formulario de chat
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.sendChatMessage();
+        });
+        
+        // Cambio de estado
+        document.getElementById('statusSelect').addEventListener('change', (e) => {
+            this.updateTicketStatus(this.currentTicketId, e.target.value);
+        });
+        
+        // Cambio de asignación
+        document.getElementById('assigneeSelect').addEventListener('change', (e) => {
+            this.assignTicket(this.currentTicketId, e.target.value);
+        });
+        
+        // Botón resolver ticket
+        document.getElementById('resolveTicketBtn').addEventListener('click', () => {
+            this.updateTicketStatus(this.currentTicketId, 'resolved');
+        });
+    }
+    
+    async loadTickets() {
+        try {
+            const response = await fetch(`/api/support/tickets?page=${this.currentPage}&status=${this.currentFilter}`);
+            const data = await response.json();
+            
+            this.renderTickets(data.tickets);
+            this.renderPagination(data.pagination);
+            this.updateStatistics(data.tickets);
+            
+        } catch (error) {
+            console.error('Error cargando tickets:', error);
+            this.showError('Error al cargar los tickets');
+        }
+    }
+    
+    renderTickets(tickets) {
+        const container = document.getElementById('ticketsList');
+        
+        if (tickets.length === 0) {
+            container.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="mt-2 text-muted">No hay tickets que mostrar</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = tickets.map(ticket => `
+            <div class="ticket-card border-bottom p-3" onclick="supportSystem.openTicketDetail(${ticket.id})">
+                <div class="priority-indicator bg-${this.getPriorityColor(ticket.priority)}"></div>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${ticket.title}</h6>
+                        <p class="text-muted mb-1 small">${ticket.ticket_number}</p>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-${this.getStatusColor(ticket.status)} ticket-status-badge me-2">
+                                ${this.getStatusText(ticket.status)}
+                            </span>
+                            <span class="badge bg-${this.getPriorityColor(ticket.priority)} ticket-status-badge me-2">
+                                ${this.getPriorityText(ticket.priority)}
+                            </span>
+                            <small class="text-muted">${ticket.category}</small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">${this.formatDate(ticket.updated_at)}</small>
+                        <div class="mt-1">
+                            <small class="text-muted">por ${ticket.user.username}</small>
+                            ${ticket.messages_count > 0 ? `<span class="badge bg-info ms-2">${ticket.messages_count}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async openTicketDetail(ticketId) {
+        this.currentTicketId = ticketId;
+        
+        try {
+            const response = await fetch(`/api/support/tickets/${ticketId}`);
+            const ticket = await response.json();
+            
+            // Llenar información del ticket
+            document.getElementById('ticketDetailTitle').textContent = ticket.ticket_number;
+            document.getElementById('ticketDetailInfo').textContent = 
+                `Creado por ${ticket.user.username} el ${this.formatDate(ticket.created_at)}`;
+            document.getElementById('ticketDetailStatus').textContent = this.getStatusText(ticket.status);
+            document.getElementById('ticketDetailStatus').className = `badge bg-${this.getStatusColor(ticket.status)}`;
+            document.getElementById('ticketDetailPriority').textContent = this.getPriorityText(ticket.priority);
+            document.getElementById('ticketDetailPriority').className = `badge bg-${this.getPriorityColor(ticket.priority)}`;
+            
+            // Llenar selects
+            document.getElementById('statusSelect').value = ticket.status;
+            document.getElementById('ticketCategory').textContent = ticket.category;
+            document.getElementById('ticketCreated').textContent = this.formatDate(ticket.created_at);
+            document.getElementById('ticketUpdated').textContent = this.formatDate(ticket.updated_at);
+            
+            // Cargar mensajes
+            await this.loadTicketMessages(ticketId);
+            
+            // Mostrar modal
+            new bootstrap.Modal(document.getElementById('ticketDetailModal')).show();
+            
+        } catch (error) {
+            console.error('Error cargando detalle del ticket:', error);
+            this.showError('Error al cargar el detalle del ticket');
+        }
+    }
+    
+    async loadTicketMessages(ticketId) {
+        try {
+            const response = await fetch(`/api/support/tickets/${ticketId}/messages`);
+            const messages = await response.json();
+            
+            const container = document.getElementById('ticketMessages');
+            container.innerHTML = messages.map(message => `
+                <div class="message-bubble ${message.is_system_message ? 'message-system' : 
+                    (message.user.id === currentUserId ? 'message-sent' : 'message-received')}">
+                    ${!message.is_system_message ? `<div class="small mb-1"><strong>${message.user.username}</strong></div>` : ''}
+                    <div>${message.message}</div>
+                    <div class="small mt-1 opacity-75">${this.formatDate(message.created_at)}</div>
+                    ${message.is_internal ? '<div class="small"><i class="bi bi-lock"></i> Interno</div>' : ''}
+                </div>
+            `).join('');
+            
+            // Scroll al final
+            container.scrollTop = container.scrollHeight;
+            
+        } catch (error) {
+            console.error('Error cargando mensajes:', error);
+        }
+    }
+    
+    async createTicket() {
+        const title = document.getElementById('ticketTitle').value;
+        const description = document.getElementById('ticketDescription').value;
+        const category = document.getElementById('ticketCategory').value;
+        const priority = document.getElementById('ticketPriority').value;
+        
+        try {
+            const response = await fetch('/api/support/tickets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    category: category,
+                    priority: priority
+                })
+            });
+            
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('newTicketModal')).hide();
+                document.getElementById('newTicketForm').reset();
+                this.loadTickets();
+                this.showSuccess('Ticket creado exitosamente');
+            } else {
+                throw new Error('Error al crear el ticket');
+            }
+            
+        } catch (error) {
+            console.error('Error creando ticket:', error);
+            this.showError('Error al crear el ticket');
+        }
+    }
+    
+    async replyToTicket() {
+        const message = document.getElementById('replyMessage').value;
+        const isInternal = document.getElementById('internalMessage').checked;
+        
+        if (!message.trim()) return;
+        
+        try {
+            const response = await fetch(`/api/support/tickets/${this.currentTicketId}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    is_internal: isInternal
+                })
+            });
+            
+            if (response.ok) {
+                document.getElementById('replyMessage').value = '';
+                document.getElementById('internalMessage').checked = false;
+                await this.loadTicketMessages(this.currentTicketId);
+                this.showSuccess('Respuesta enviada');
+            } else {
+                throw new Error('Error al enviar respuesta');
+            }
+            
+        } catch (error) {
+            console.error('Error enviando respuesta:', error);
+            this.showError('Error al enviar la respuesta');
+        }
+    }
+    
+    async updateTicketStatus(ticketId, newStatus) {
+        try {
+            const response = await fetch(`/api/support/tickets/${ticketId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+            
+            if (response.ok) {
+                await this.loadTicketMessages(ticketId);
+                this.loadTickets();
+                this.showSuccess('Estado actualizado');
+            } else {
+                throw new Error('Error al actualizar estado');
+            }
+            
+        } catch (error) {
+            console.error('Error actualizando estado:', error);
+            this.showError('Error al actualizar el estado');
+        }
+    }
+    
+    // Métodos auxiliares
+    getStatusColor(status) {
+        const colors = {
+            'open': 'primary',
+            'in_progress': 'warning',
+            'resolved': 'success',
+            'closed': 'secondary'
+        };
+        return colors[status] || 'secondary';
+    }
+    
+    getStatusText(status) {
+        const texts = {
+            'open': 'Abierto',
+            'in_progress': 'En Progreso',
+            'resolved': 'Resuelto',
+            'closed': 'Cerrado'
+        };
+        return texts[status] || status;
+    }
+    
+    getPriorityColor(priority) {
+        const colors = {
+            'low': 'success',
+            'medium': 'info',
+            'high': 'warning',
+            'urgent': 'danger'
+        };
+        return colors[priority] || 'info';
+    }
+    
+    getPriorityText(priority) {
+        const texts = {
+            'low': 'Baja',
+            'medium': 'Media',
+            'high': 'Alta',
+            'urgent': 'Urgente'
+        };
+        return texts[priority] || priority;
+    }
+    
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    updateStatistics(tickets) {
+        const stats = {
+            total: tickets.length,
+            open: tickets.filter(t => t.status === 'open').length,
+            inProgress: tickets.filter(t => t.status === 'in_progress').length,
+            resolved: tickets.filter(t => t.status === 'resolved').length
+        };
+        
+        document.getElementById('totalTickets').textContent = stats.total;
+        document.getElementById('openTickets').textContent = stats.open;
+        document.getElementById('inProgressTickets').textContent = stats.inProgress;
+        document.getElementById('resolvedTickets').textContent = stats.resolved;
+    }
+    
+    async updateUnreadCount() {
+        try {
+            const response = await fetch('/api/support/chat/unread-count');
+            const data = await response.json();
+            
+            const countElement = document.getElementById('unreadCount');
+            if (data.unread_count > 0) {
+                countElement.textContent = data.unread_count;
+                countElement.style.display = 'inline-block';
+            } else {
+                countElement.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error obteniendo mensajes no leídos:', error);
+        }
+    }
+    
+    showSuccess(message) {
+        // Implementar notificación de éxito (toast, alert, etc.)
+        alert('✅ ' + message);
+    }
+    
+    showError(message) {
+        // Implementar notificación de error (toast, alert, etc.)
+        alert('❌ ' + message);
+    }
+}
+
+// Inicializar sistema cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Variable global para identificar al usuario actual
+    window.currentUserId = {{ current_user.id }};
+    window.supportSystem = new SupportSystem();
+});
+</script>
+{% endblock %}
