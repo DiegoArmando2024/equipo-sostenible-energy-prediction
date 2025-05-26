@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta de Consumo Energético</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+        .alert-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .consumption-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .recommendations {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding: 20px 0;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="alert-icon">⚠️</div>
+            <h1>Alerta de Consumo Energético</h1>
+            <p>Sistema Predictivo UDEC</p>
+        </div>
+        
+        <div class="content">
+            <p>Se ha detectado un consumo energético elevado en:</p>
+            
+            <div class="highlight">
+                <h3>🏢 {{ building_name }}</h3>
+                <p><strong>Fecha y hora:</strong> {{ timestamp.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+            
+            <div class="consumption-value">
+                {{ consumption }} kWh
+            </div>
+            
+            <p style="text-align: center;">
+                <strong>Umbral de alerta:</strong> {{ threshold }} kWh<br>
+                <strong>Exceso:</strong> {{ "%.1f"|format(consumption - threshold) }} kWh ({{ "%.1f"|format(((consumption - threshold) / threshold) * 100) }}%)
+            </p>
+            
+            <div class="recommendations">
+                <h4>💡 Recomendaciones inmediatas:</h4>
+                <ul>
+                    <li>Verificar el estado de los equipos de climatización</li>
+                    <li>Revisar si hay equipos encendidos innecesariamente</li>
+                    <li>Comprobar la ocupación real vs. la planificada</li>
+                    <li>Considerar ajustar la temperatura de los sistemas HVAC</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="http://localhost:5000/dashboard" class="btn">Ver Dashboard Completo</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Este es un mensaje automático del Sistema Predictivo de Consumo Energético - UDEC</p>
+            <p>Universidad de Cundinamarca - Sede Chía</p>
+            <p style="font-size: 0.8em; color: #999;">
+                Si no desea recibir estas alertas, puede configurar sus preferencias en el sistema.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio de Mantenimiento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #ffc107;
+            color: #333;
+            padding: 25px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .maintenance-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .maintenance-info h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .checklist {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .checklist h4 {
+            color: #155724;
+            margin-top: 0;
+        }
+        .checklist ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .checklist li {
+            margin: 8px 0;
+        }
+        .priority-high {
+            border-left: 4px solid #dc3545;
+            padding-left: 15px;
+        }
+        .priority-medium {
+            border-left: 4px solid #ffc107;
+            padding-left: 15px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background-color: #1e7e34;
+        }
+        .contact-info {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🔧</div>
+            <h1>Recordatorio de Mantenimiento</h1>
+            <p>Sistema Predictivo UDEC</p>
+        </div>
+        
+        <div class="content">
+            <p>Es hora de realizar el mantenimiento preventivo programado:</p>
+            
+            <div class="maintenance-info">
+                <h3>📍 Detalles del Mantenimiento</h3>
+                <p><strong>Edificio:</strong> {{ building_name }}</p>
+                <p><strong>Equipo/Sistema:</strong> {{ equipment_type }}</p>
+                <p><strong>Fecha programada:</strong> {{ timestamp.strftime('%d/%m/%Y') }}</p>
+                <p><strong>Prioridad:</strong> <span class="priority-medium">Media</span></p>
+            </div>
+            
+            <div class="checklist">
+                <h4>✅ Lista de Verificación para {{ equipment_type }}</h4>
+                <ul>
+                    <li>Inspección visual general del equipo</li>
+                    <li>Limpieza de filtros y componentes</li>
+                    <li>Verificación de conexiones eléctricas</li>
+                    <li>Lubricación de partes móviles</li>
+                    <li>Calibración de sensores y controles</li>
+                    <li>Pruebas de funcionamiento</li>
+                    <li>Registro de mediciones y observaciones</li>
+                    <li>Actualización del historial de mantenimiento</li>
+                </ul>
+            </div>
+            
+            <div class="maintenance-info priority-high">
+                <h4>⚠️ Importante</h4>
+                <p>El mantenimiento preventivo regular es crucial para:</p>
+                <ul>
+                    <li>Mantener la eficiencia energética óptima</li>
+                    <li>Prevenir fallos costosos</li>
+                    <li>Extender la vida útil de los equipos</li>
+                    <li>Cumplir con las normativas de seguridad</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="http://localhost:5000/admin" class="btn">Acceder al Sistema</a>
+            </div>
+            
+            <div class="contact-info">
+                <h4>📞 Información de Contacto</h4>
+                <p><strong>Departamento de Mantenimiento:</strong><br>
+                Ext. 1234 | mantenimiento@udec.edu.co</p>
+                <p><strong>Soporte Técnico del Sistema:</strong><br>
+                Ext. 5678 | soporte.energia@udec.edu.co</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Sistema Predictivo de Consumo Energético</p>
+            <p>Universidad de Cundinamarca - Sede Chía</p>
+        </div>
+    </div>
+</body>
+</html>

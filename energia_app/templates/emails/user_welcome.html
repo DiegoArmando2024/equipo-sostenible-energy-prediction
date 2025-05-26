@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido al Sistema Predictivo UDEC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .user-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .credentials {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .credentials h4 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .features {
+            margin: 30px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 40px;
+        }
+        .feature-text {
+            flex: 1;
+        }
+        .feature-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .feature-desc {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 35px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border-radius: 10px;
+            color: white;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background-color: #1e7e34;
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .footer h4 {
+            color: #ffc107;
+            margin-top: 0;
+        }
+        .logo {
+            max-width: 60px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="welcome-icon">🎉</div>
+            <h1>¡Bienvenido!</h1>
+            <p style="font-size: 1.2em; margin: 0;">Sistema Predictivo de Consumo Energético</p>
+        </div>
+        
+        <div class="content">
+            <div class="user-info">
+                <h2 style="color: #0066cc; margin-top: 0;">Hola {{ user_name }},</h2>
+                <p style="font-size: 1.1em;">Tu cuenta ha sido creada exitosamente en el Sistema Predictivo de Consumo Energético de la Universidad de Cundinamarca.</p>
+            </div>
+            
+            {% if temp_password %}
+            <div class="credentials">
+                <h4>🔐 Credenciales de Acceso Temporal</h4>
+                <p><strong>Usuario:</strong> {{ user_name }}</p>
+                <p><strong>Contraseña temporal:</strong> <code>{{ temp_password }}</code></p>
+                <p style="color: #dc3545; font-weight: bold;">⚠️ Por favor, cambia tu contraseña en el primer inicio de sesión.</p>
+            </div>
+            {% endif %}
+            
+            <div class="features">
+                <h3 style="color: #333; text-align: center;">🚀 Funcionalidades Disponibles</h3>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Predicciones Inteligentes</div>
+                        <div class="feature-desc">Predice el consumo energético basado en ocupación, horarios y características del edificio</div>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📈</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Dashboard Interactivo</div>
+                        <div class="feature-desc">Visualiza patrones de consumo, tendencias y estadísticas en tiempo real</div>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">🏢</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Gestión de Edificios</div>
+                        <div class="feature-desc">Administra información de edificios y realiza predicciones específicas</div>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">💡</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Recomendaciones Personalizadas</div>
+                        <div class="feature-desc">Recibe sugerencias específicas para optimizar el consumo energético</div>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📧</div>
+                    <div class="feature-text">
+                        <div class="feature-title">Alertas y Reportes</div>
+                        <div class="feature-desc">Mantente informado con alertas automáticas y reportes semanales</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <h3 style="margin-top: 0;">🌱 Contribuye al ODS 7</h3>
+                <p>Tu participación es clave para lograr una energía asequible y no contaminante en nuestro campus</p>
+                <a href="{{ login_url }}" class="btn">Iniciar Sesión Ahora</a>
+                <a href="http://localhost:5000/dashboard" class="btn btn-primary">Explorar Dashboard</a>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 25px; border-radius: 10px; margin: 25px 0;">
+                <h4 style="color: #333; margin-top: 0;">📚 Primeros Pasos Recomendados</h4>
+                <ol style="color: #666;">
+                    <li>Inicia sesión con tus credenciales</li>
+                    <li>Cambia tu contraseña temporal (si aplica)</li>
+                    <li>Explora el dashboard para familiarizarte con las gráficas</li>
+                    <li>Registra edificios si tienes permisos de administrador</li>
+                    <li>Realiza tu primera predicción de consumo</li>
+                    <li>Configura tus preferencias de notificaciones</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <h4>🎓 Universidad de Cundinamarca</h4>
+            <p>Sistema Predictivo de Consumo Energético</p>
+            <p>Sede Chía - Contribuyendo al ODS 7</p>
+            <p style="font-size: 0.9em; margin-top: 20px; color: #adb5bd;">
+                Si tienes problemas para acceder, contacta al equipo de soporte:<br>
+                📧 soporte.energia@udec.edu.co | 📞 Ext. 5678
+            </p>
+        </div>
+    </div>
+</body>
+</html>
