@@ -90,3 +90,57 @@ class EnergyDataForm(FlaskForm):
     ], validators=[DataRequired()])
     consumo_energetico = FloatField('Consumo energético (kWh)', validators=[DataRequired(), NumberRange(min=0)])
     submit = SubmitField('Guardar Registro')
+    
+class AdminUserForm(FlaskForm):
+    """Formulario para administración de usuarios"""
+    username = StringField('Nombre de usuario', validators=[DataRequired(), Length(min=4, max=25)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    role = SelectField('Rol', choices=[
+        ('user', 'Usuario normal'),
+        ('admin', 'Administrador'),
+        ('analyst', 'Analista')
+    ], validators=[DataRequired()])
+    active = SelectField('Estado', choices=[
+        (True, 'Activo'),
+        (False, 'Inactivo')
+    ], coerce=bool, validators=[DataRequired()])
+    password = PasswordField('Nueva contraseña (dejar en blanco para no cambiar)',
+                           validators=[Length(min=6)])
+    confirm_password = PasswordField('Confirmar nueva contraseña',
+                                   validators=[EqualTo('password', message='Las contraseñas deben coincidir')])
+    submit = SubmitField('Guardar cambios')
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user and user.id != self._obj.id:  # self._obj se establece en la ruta
+            raise ValidationError('Este nombre de usuario ya está en uso')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user and user.id != self._obj.id:
+            raise ValidationError('Este email ya está registrado')
+        
+class SupportTicketForm(FlaskForm):
+    """Formulario para crear/editar tickets de soporte"""
+    title = StringField('Título', validators=[DataRequired(), Length(max=100)])
+    category = SelectField('Categoría', choices=[
+        ('technical', 'Problema técnico'),
+        ('billing', 'Facturación'),
+        ('account', 'Cuenta de usuario'),
+        ('prediction', 'Problema con predicciones'),
+        ('other', 'Otro')
+    ], validators=[DataRequired()])
+    priority = SelectField('Prioridad', choices=[
+        ('low', 'Baja'),
+        ('medium', 'Media'),
+        ('high', 'Alta'),
+        ('critical', 'Crítica')
+    ], default='medium')
+    description = TextAreaField('Descripción', validators=[DataRequired()])
+    submit = SubmitField('Enviar Ticket')
+
+class TicketMessageForm(FlaskForm):
+    """Formulario para añadir mensajes a tickets"""
+    message = TextAreaField('Mensaje', validators=[DataRequired()])
+    is_internal = BooleanField('Mensaje interno (solo visible para staff)')
+    submit = SubmitField('Enviar Mensaje')

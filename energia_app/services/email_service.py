@@ -288,31 +288,35 @@ def send_weekly_reports():
 # Configuración para tareas programadas (usando APScheduler)
 def setup_scheduled_emails(app):
     """Configura las tareas programadas de email"""
-    from apscheduler.schedulers.background import BackgroundScheduler
-    import atexit
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        import atexit
+        
+        scheduler = BackgroundScheduler()
+        
+        # Verificar alertas cada hora
+        scheduler.add_job(
+            func=check_consumption_alerts,
+            trigger="interval",
+            hours=1,
+            id='consumption_alerts'
+        )
+        
+        # Enviar reportes semanales los lunes a las 8:00 AM
+        scheduler.add_job(
+            func=send_weekly_reports,
+            trigger="cron",
+            day_of_week="mon",
+            hour=8,
+            id='weekly_reports'
+        )
+        
+        scheduler.start()
+        
+        # Cerrar scheduler al terminar la aplicación
+        atexit.register(lambda: scheduler.shutdown())
+        
+        logger.info("Tareas programadas de email configuradas")
+    except ImportError:
+        logger.warning("APScheduler no instalado. Tareas programadas deshabilitadas.")
     
-    scheduler = BackgroundScheduler()
-    
-    # Verificar alertas cada hora
-    scheduler.add_job(
-        func=check_consumption_alerts,
-        trigger="interval",
-        hours=1,
-        id='consumption_alerts'
-    )
-    
-    # Enviar reportes semanales los lunes a las 8:00 AM
-    scheduler.add_job(
-        func=send_weekly_reports,
-        trigger="cron",
-        day_of_week="mon",
-        hour=8,
-        id='weekly_reports'
-    )
-    
-    scheduler.start()
-    
-    # Cerrar scheduler al terminar la aplicación
-    atexit.register(lambda: scheduler.shutdown())
-    
-    logger.info("Tareas programadas de email configuradas")

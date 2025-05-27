@@ -79,12 +79,12 @@
                         </form>
                         
                         <div class="d-grid mt-3">
-                            <a href="{{ url_for('data_management') }}#data-import" class="btn btn-success">
+                            <a href="{{ url_for('data.manage') }}#data-import" class="btn btn-success">
                                 <i class="bi bi-database"></i> Gestionar Dataset
                             </a>
                         </div>
                         
-                        <form action="{{ url_for('retrain_model') }}" method="POST" class="mt-3">
+                        <form action="{{ url_for('data.retrain') }}" method="POST" class="mt-3">
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-warning">
                                     <i class="bi bi-arrow-repeat"></i> Reentrenar modelo ahora

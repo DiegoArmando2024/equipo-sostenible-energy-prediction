@@ -663,6 +663,162 @@ class SupportSystem {
             this.showError('Error al actualizar el estado');
         }
     }
+
+    async loadUsers() {
+        try {
+            const response = await fetch('/api/support/users');
+            const users = await response.json();
+            
+            const container = document.getElementById('usersList');
+            container.innerHTML = users.map(user => `
+                <a href="#" class="list-group-item list-group-item-action" 
+                onclick="supportSystem.openChat(${user.id}, '${user.username}')">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${user.username}</h6>
+                        <span class="badge bg-${user.role === 'admin' ? 'danger' : 'primary'}">${user.role}</span>
+                    </div>
+                </a>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Error cargando usuarios:', error);
+            document.getElementById('usersList').innerHTML = '<p class="text-muted p-3">Error cargando usuarios</p>';
+        }
+    }
+
+    openChat(userId, username) {
+        this.currentChatUserId = userId;
+        document.getElementById('chatUserName').textContent = username;
+        
+        // Cargar mensajes del chat
+        this.loadChatMessages(userId);
+        
+        // Mostrar modal
+        new bootstrap.Modal(document.getElementById('chatModal')).show();
+    }
+
+    async loadChatMessages(userId) {
+        try {
+            const response = await fetch(`/api/support/chat/messages/${userId}`);
+            const data = await response.json();
+            
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = data.messages.map(message => `
+                <div class="message-bubble ${message.sender.id === currentUserId ? 'message-sent' : 'message-received'}">
+                    <div class="small mb-1"><strong>${message.sender.username}</strong></div>
+                    <div>${message.message}</div>
+                    <div class="small mt-1 opacity-75">${this.formatDate(message.created_at)}</div>
+                </div>
+            `).join('');
+            
+            // Scroll al final
+            container.scrollTop = container.scrollHeight;
+            
+        } catch (error) {
+            console.error('Error cargando mensajes de chat:', error);
+        }
+    }
+
+    async sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (!message || !this.currentChatUserId) return;
+        
+        try {
+            const response = await fetch('/api/support/chat/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    receiver_id: this.currentChatUserId,
+                    message: message
+                })
+            });
+            
+            if (response.ok) {
+                input.value = '';
+                await this.loadChatMessages(this.currentChatUserId);
+            } else {
+                throw new Error('Error al enviar mensaje');
+            }
+            
+        } catch (error) {
+            console.error('Error enviando mensaje:', error);
+            this.showError('Error al enviar el mensaje');
+        }
+    }
+
+    renderPagination(pagination) {
+        const container = document.getElementById('ticketsPagination');
+        
+        if (pagination.pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let paginationHTML = '';
+        
+        // Botón anterior
+        if (pagination.has_prev) {
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="supportSystem.goToPage(${pagination.page - 1})">Anterior</a>
+                </li>
+            `;
+        }
+        
+        // Números de página
+        for (let i = 1; i <= pagination.pages; i++) {
+            paginationHTML += `
+                <li class="page-item ${i === pagination.page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="supportSystem.goToPage(${i})">${i}</a>
+                </li>
+            `;
+        }
+        
+        // Botón siguiente
+        if (pagination.has_next) {
+            paginationHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="supportSystem.goToPage(${pagination.page + 1})">Siguiente</a>
+                </li>
+            `;
+        }
+        
+        container.innerHTML = paginationHTML;
+    }
+
+    goToPage(page) {
+        this.currentPage = page;
+        this.loadTickets();
+    }
+
+    async assignTicket(ticketId, assigneeId) {
+        try {
+            const response = await fetch(`/api/support/tickets/${ticketId}/assign`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    assigned_to: assigneeId
+                })
+            });
+            
+            if (response.ok) {
+                this.showSuccess('Ticket asignado correctamente');
+                await this.loadTicketMessages(ticketId);
+            } else {
+                throw new Error('Error al asignar ticket');
+            }
+            
+        } catch (error) {
+            console.error('Error asignando ticket:', error);
+            this.showError('Error al asignar el ticket');
+        }
+    }
     
     // Métodos auxiliares
     getStatusColor(status) {

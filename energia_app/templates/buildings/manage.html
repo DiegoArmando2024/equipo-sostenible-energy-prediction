@@ -31,7 +31,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="{{ url_for('manage_buildings') }}">
+                        <form method="POST" action="{{ url_for('buildings.manage') }}">
                             {{ form.hidden_tag() }}
                             {{ form.id() }}
                             
@@ -76,7 +76,7 @@
                             <div class="d-grid gap-2">
                                 {{ form.submit(class="btn btn-primary") }}
                                 {% if form.id.data and form.id.data > 0 %}
-                                    <a href="{{ url_for('manage_buildings') }}" class="btn btn-outline-secondary">Cancelar edición</a>
+                                    <a href="{{ url_for('buildings.manage') }}" class="btn btn-outline-secondary">Cancelar edición</a>
                                 {% endif %}
                             </div>
                         </form>
@@ -114,10 +114,10 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="{{ url_for('manage_buildings', building_id=building.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <a href="{{ url_for('buildings.manage', building_id=building.id) }}" class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
-                                                <a href="{{ url_for('delete_building', building_id=building.id) }}" 
+                                                <a href="{{ url_for('buildings.delete', building_id=building.id) }}" 
                                                    class="btn btn-sm btn-outline-danger" 
                                                    onclick="return confirm('¿Está seguro de eliminar este edificio?')">
                                                     <i class="bi bi-trash"></i>
@@ -145,13 +145,13 @@
                         <p>Para utilizar los edificios registrados en las predicciones de consumo energético:</p>
                         <ol>
                             <li>Registre los edificios con su área correspondiente.</li>
-                            <li>Vaya a la página de <a href="{{ url_for('predict') }}">Predicción</a>.</li>
+                            <li>Vaya a la página de <a href="{{ url_for('predictions.predict') }}">Predicción</a>.</li>
                             <li>Seleccione uno o varios edificios para los que desea realizar la predicción.</li>
                             <li>Complete los demás parámetros (ocupación, día y hora).</li>
                             <li>Obtenga las predicciones y recomendaciones para los edificios seleccionados.</li>
                         </ol>
                         <div class="d-grid">
-                            <a href="{{ url_for('predict') }}" class="btn btn-primary">
+                            <a href="{{ url_for('predictions.predict') }}" class="btn btn-primary">
                                 <i class="bi bi-lightning-charge"></i> Ir a Predicciones
                             </a>
                         </div>

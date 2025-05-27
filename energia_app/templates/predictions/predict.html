@@ -18,7 +18,7 @@
         {% endif %}
         {% endwith %}
         
-        <form method="POST" action="/predict" class="mt-4">
+        <form method="POST" action="{{ url_for('predictions.predict') }}" class="mt-4">
             {{ form.hidden_tag() }}
             
             <div class="mb-3">
@@ -33,7 +33,7 @@
                 
                 {% if not buildings %}
                 <div class="alert alert-warning mt-2">
-                    <small>No hay edificios registrados. <a href="{{ url_for('manage_buildings') }}">Registre edificios</a> para continuar.</small>
+                    <small>No hay edificios registrados. <a href="{{ url_for('buildings.manage') }}">Registre edificios</a> para continuar.</small>
                 </div>
                 {% endif %}
             </div>
@@ -182,7 +182,7 @@
                         mientras hace clic en los edificios que desea seleccionar.
                     </p>
                     <div class="alert alert-info">
-                        <strong>Consejo:</strong> Para una experiencia óptima, primero <a href="{{ url_for('manage_buildings') }}">registre los edificios</a> 
+                        <strong>Consejo:</strong> Para una experiencia óptima, primero <a href="{{ url_for('buildings.manage') }}">registre los edificios</a> 
                         con sus respectivas áreas y luego realice las predicciones.
                     </div>
                 </div>

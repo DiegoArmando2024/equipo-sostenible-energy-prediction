@@ -1,6 +1,10 @@
 from datetime import datetime
 from energia_app.models.user import db
 from sqlalchemy import Index
+import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SecurityLog(db.Model):
     """Modelo para registro de eventos de seguridad"""

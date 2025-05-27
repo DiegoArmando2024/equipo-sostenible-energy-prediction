@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Centro de Soporte - Sistema Predictivo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4"><i class="bi bi-headset"></i> Centro de Soporte</h1>
+        <p class="lead">Bienvenido al centro de soporte. Aquí puedes gestionar tus tickets y obtener ayuda.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-plus-circle display-1 text-primary mb-3"></i>
+                <h5 class="card-title">Crear Ticket</h5>
+                <p class="card-text">¿Tienes un problema o necesitas ayuda? Crea un nuevo ticket de soporte.</p>
+                <a href="{{ url_for('support.tickets') }}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Nuevo Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-list-ul display-1 text-success mb-3"></i>
+                <h5 class="card-title">Mis Tickets</h5>
+                <p class="card-text">Revisa el estado de tus tickets existentes y continúa las conversaciones.</p>
+                <a href="{{ url_for('support.tickets') }}" class="btn btn-success">
+                    <i class="bi bi-list"></i> Ver Tickets
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-chat-dots display-1 text-info mb-3"></i>
+                <h5 class="card-title">Chat en Vivo</h5>
+                <p class="card-text">Chatea directamente con nuestro equipo de soporte para ayuda inmediata.</p>
+                <a href="{{ url_for('support.tickets') }}" class="btn btn-info">
+                    <i class="bi bi-chat"></i> Iniciar Chat
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <h3>Preguntas Frecuentes</h3>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        ¿Cómo realizo una predicción de consumo?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Para realizar una predicción, ve a la sección "Predicción" en el menú principal, selecciona los edificios, especifica los parámetros y haz clic en "Predecir consumo".
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        ¿Cómo agrego un nuevo edificio?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        En la sección "Edificios", puedes agregar nuevos edificios especificando su nombre, área, ubicación y descripción.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        ¿Qué significa cada estado de ticket?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <strong>Abierto:</strong> Ticket recién creado pendiente de revisión.<br>
+                        <strong>En Progreso:</strong> El equipo está trabajando en tu solicitud.<br>
+                        <strong>Resuelto:</strong> El problema ha sido solucionado.<br>
+                        <strong>Cerrado:</strong> Ticket finalizado.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Información de Contacto</h5>
+            </div>
+            <div class="card-body">
+                <p><i class="bi bi-envelope"></i> <strong>Email:</strong> soporte@udec.edu.co</p>
+                <p><i class="bi bi-telephone"></i> <strong>Teléfono:</strong> +57 (1) 123-4567</p>
+                <p><i class="bi bi-clock"></i> <strong>Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+                <p><i class="bi bi-geo-alt"></i> <strong>Ubicación:</strong> Universidad de Cundinamarca - Sede Chía</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Consejos de Soporte</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Describe tu problema con el mayor detalle posible</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Incluye capturas de pantalla si es necesario</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Especifica los pasos que realizaste antes del problema</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Responde a tiempo a nuestras consultas</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
