@@ -1,4 +1,4 @@
-area,ocupacion,dia_semana,hora_dia,consumo_predicho
+area_edificio,ocupacion,dia_semana,hora_dia,consumo_energetico
 2185.430534813131,8,5,3,25.428480070378928
 4778.214378844623,24,5,23,55.22078619802483
 3793.972738151323,46,0,7,75.86650120292778
