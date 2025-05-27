@@ -1,5 +1,5 @@
 # energia_app/blueprints/data_management.py
-from flask import Blueprint, render_template, flash, redirect, url_for, request, send_from_directory, Response
+from flask import Blueprint, render_template, flash, redirect, url_for, request, send_from_directory, Response, current_app
 from flask_login import login_required, current_user
 import os
 import io
@@ -32,24 +32,31 @@ def manage():
     if total_manual_records > 0:
         try:
             data_df = EnergyData.export_to_df()
+            # Cambiar nombres de columnas para consistencia
+            data_df = data_df.rename(columns={
+                'area_edificio': 'area',
+                'consumo_energetico': 'consumo_predicho'
+            })
+            
             dataset_stats = {
                 'n_samples': len(data_df),
-                'area_min': data_df['area_edificio'].min(),
-                'area_max': data_df['area_edificio'].max(),
-                'consumo_min': data_df['consumo_energetico'].min(),
-                'consumo_max': data_df['consumo_energetico'].max(),
-                'consumo_mean': data_df['consumo_energetico'].mean()
+                'area_min': data_df['area'].min(),
+                'area_max': data_df['area'].max(),
+                'consumo_min': data_df['consumo_predicho'].min(),
+                'consumo_max': data_df['consumo_predicho'].max(),
+                'consumo_mean': data_df['consumo_predicho'].mean()
             }
             
             if len(data_df) >= 10:
                 correlaciones = {
-                    'area_consumo': data_df['area_edificio'].corr(data_df['consumo_energetico']),
-                    'ocupacion_consumo': data_df['ocupacion'].corr(data_df['consumo_energetico']),
-                    'dia_consumo': data_df['dia_semana'].corr(data_df['consumo_energetico']),
-                    'hora_consumo': data_df['hora_dia'].corr(data_df['consumo_energetico'])
+                    'area_consumo': data_df['area'].corr(data_df['consumo_predicho']),
+                    'ocupacion_consumo': data_df['ocupacion'].corr(data_df['consumo_predicho']),
+                    'dia_consumo': data_df['dia_semana'].corr(data_df['consumo_predicho']),
+                    'hora_consumo': data_df['hora_dia'].corr(data_df['consumo_predicho'])
                 }
                 dataset_stats['correlaciones'] = correlaciones
         except Exception as e:
+            current_app.logger.error(f"Error al calcular estadísticas: {str(e)}")
             flash(f"Error al calcular estadísticas: {str(e)}")
     
     if request.method == 'POST' and manual_form.validate_on_submit():
@@ -70,6 +77,7 @@ def manage():
             flash('Registro guardado correctamente.')
             return redirect(url_for('data.manage'))
         except Exception as e:
+            current_app.logger.error(f"Error al guardar registro: {str(e)}")
             flash(f'Error al guardar el registro: {str(e)}')
     
     return render_template(
@@ -100,12 +108,24 @@ def upload():
     if file and allowed_file(file.filename):
         try:
             data = pd.read_csv(file)
-            required_cols = ['area_edificio', 'ocupacion', 'dia_semana', 'hora_dia', 'consumo_energetico']
-            missing_cols = [col for col in required_cols if col not in data.columns]
+            # Cambiar nombres de columnas requeridas para consistencia
+            required_cols = {
+                'area_edificio': 'area',
+                'consumo_energetico': 'consumo_predicho',
+                'ocupacion': 'ocupacion',
+                'dia_semana': 'dia_semana',
+                'hora_dia': 'hora_dia'
+            }
+            
+            # Verificar columnas
+            missing_cols = [original for original in required_cols if original not in data.columns]
             
             if missing_cols:
                 flash(f'El archivo CSV no tiene las columnas requeridas: {", ".join(missing_cols)}')
                 return redirect(url_for('data.manage'))
+            
+            # Renombrar columnas para consistencia
+            data = data.rename(columns=required_cols)
             
             count = EnergyData.import_from_df(data)
             flash(f'Se han importado {count} registros correctamente a la base de datos.')
@@ -114,65 +134,19 @@ def upload():
                 try:
                     all_data = EnergyData.export_to_df()
                     X, y = preprocess_data(all_data, training=True)
-                    model = EnergyModel()
+                    model = Energy_Model()
                     metrics = model.train(X, y)
                     flash(f'Modelo reentrenado con éxito. R² = {metrics["r2"]:.4f}')
                 except Exception as e:
+                    current_app.logger.error(f"Error al reentrenar modelo: {str(e)}")
                     flash(f'Error al reentrenar el modelo: {str(e)}')
             
             return redirect(url_for('data.manage'))
         except Exception as e:
+            current_app.logger.error(f"Error al procesar archivo: {str(e)}")
             flash(f'Error al procesar el archivo: {str(e)}')
     else:
         flash('Tipo de archivo no permitido. Por favor, sube un archivo CSV.')
-    
-    return redirect(url_for('data.manage'))
-
-@data_bp.route('/export')
-@login_required
-def export():
-    if current_user.role != 'admin':
-        flash('No tienes permisos para acceder a esta funcionalidad.')
-        return redirect(url_for('dashboard.index'))
-    
-    energy_data = EnergyData.query.all()
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(['id', 'timestamp', 'building_id', 'area_edificio', 'ocupacion', 
-                     'dia_semana', 'hora_dia', 'consumo_energetico'])
-    
-    for data in energy_data:
-        writer.writerow([
-            data.id,
-            data.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-            data.building_id,
-            data.area_edificio,
-            data.ocupacion,
-            data.dia_semana,
-            data.hora_dia,
-            data.consumo_energetico
-        ])
-    
-    output.seek(0)
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment;filename=energy_data.csv"}
-    )
-
-@data_bp.route('/delete-all')
-@login_required
-def delete_all():
-    if current_user.role != 'admin':
-        flash('No tienes permisos para acceder a esta funcionalidad.')
-        return redirect(url_for('dashboard.index'))
-    
-    try:
-        EnergyData.query.delete()
-        db.session.commit()
-        flash('Todos los registros de datos energéticos han sido eliminados.')
-    except Exception as e:
-        flash(f'Error al eliminar los registros: {str(e)}')
     
     return redirect(url_for('data.manage'))
 
