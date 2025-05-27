@@ -35,20 +35,6 @@ def create_app():
     # Inicializar extensiones
     initialize_extensions(app)
     
-    # Crear tablas de la base de datos si no existen
-    with app.app_context():
-        db.create_all()
-        # Crear usuario admin si no existe
-        if not User.query.filter_by(username='admin').first():
-            admin = User(
-                username='admin',
-                email='admin@example.com',
-                role='admin'
-            )
-            admin.set_password(os.environ.get('ADMIN_PASSWORD', 'adminpassword'))
-            db.session.add(admin)
-            db.session.commit()
-    
     # Registrar blueprints
     register_blueprints(app)
     
