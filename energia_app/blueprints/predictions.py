@@ -1,4 +1,3 @@
-# energia_app/blueprints/predictions.py
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from datetime import datetime
@@ -8,9 +7,12 @@ from energia_app.models.user import Building, Prediction, db
 from energia_app.models.model import Energy_Model
 from energia_app.models.preprocess import preprocess_data
 
-predictions_bp = Blueprint('predictions', __name__, url_prefix='/predict')
+# Blueprint modificado sin url_prefix
+predictions_bp = Blueprint('predictions', __name__)
 
-@predictions_bp.route('/', methods=['GET', 'POST'])
+# Rutas explícitas para /predict y /predict/
+@predictions_bp.route('/predict', methods=['GET', 'POST'])
+@predictions_bp.route('/predict/', methods=['GET', 'POST'])
 @login_required
 def predict():
     active_buildings = Building.query.filter_by(active=True).all()
@@ -21,8 +23,8 @@ def predict():
         try:
             selected_building_ids = form.buildings.data
             ocupacion = form.ocupacion.data
-            dia_semana = form.dia_semana.data - 1
-            hora_dia = form.hora_dia.data - 1
+            dia_semana = form.dia_semana.data - 1  # Ajuste para índice 0-based
+            hora_dia = form.hora_dia.data - 1      # Ajuste para índice 0-based
             
             selected_buildings = Building.query.filter(Building.id.in_(selected_building_ids)).all()
             model = Energy_Model()
@@ -35,8 +37,9 @@ def predict():
             total_consumption = 0
             
             for building in selected_buildings:
+                # DataFrame con nombres de columnas consistentes
                 input_data = pd.DataFrame({
-                    'area_edificio': [building.area],
+                    'area': [building.area],          # Cambiado de 'area_edificio' a 'area'
                     'ocupacion': [ocupacion],
                     'dia_semana': [dia_semana],
                     'hora_dia': [hora_dia]
@@ -60,47 +63,58 @@ def predict():
                     'building_name': building.name,
                     'area': building.area,
                     'consumption': prediction_value,
-                    'recommendations': generate_recommendations(building.area, ocupacion, dia_semana, hora_dia, prediction_value)
+                    'recommendations': generate_recommendations(
+                        building.area, ocupacion, dia_semana, hora_dia, prediction_value
+                    )
                 })
                 
                 total_consumption += prediction_value
             
             db.session.commit()
             return render_template('predictions/predict.html', 
-                                 form=form,
-                                 buildings=active_buildings,
-                                 predictions=predictions,
-                                 total_consumption=round(total_consumption, 2),
-                                 ocupacion=ocupacion,
-                                 dia_semana=dia_semana,
-                                 hora_dia=hora_dia)
+                                form=form,
+                                buildings=active_buildings,
+                                predictions=predictions,
+                                total_consumption=round(total_consumption, 2),
+                                ocupacion=ocupacion,
+                                dia_semana=dia_semana,
+                                hora_dia=hora_dia)
         
         except Exception as e:
+            db.session.rollback()
             flash(f'Error al procesar predicción: {str(e)}')
-            return render_template('predictions/predict.html', form=form, buildings=active_buildings)
+            return render_template('predictions/predict.html', 
+                                form=form, 
+                                buildings=active_buildings)
     
-    # Return para GET requests
-    return render_template('predictions/predict.html', form=form, buildings=active_buildings)
+    return render_template('predictions/predict.html', 
+                         form=form, 
+                         buildings=active_buildings)
 
 def generate_recommendations(area, ocupacion, dia_semana, hora_dia, prediction=None):
-    """Función auxiliar para generar recomendaciones"""
+    """Genera recomendaciones personalizadas basadas en los parámetros de predicción"""
     recommendations = []
     
-    if dia_semana >= 5:
+    # Recomendaciones basadas en día de la semana
+    if dia_semana >= 5:  # Fin de semana
         recommendations.append("Programar apagado automático de sistemas no esenciales durante el fin de semana.")
-    else:
+    else:  # Día laboral
         recommendations.append("Optimizar el encendido y apagado de equipos según horarios de mayor ocupación.")
     
-    if 0 <= hora_dia < 6 or 22 <= hora_dia <= 23:
+    # Recomendaciones basadas en hora del día
+    if 0 <= hora_dia < 6 or 22 <= hora_dia <= 23:  # Horas nocturnas
         recommendations.append("Implementar sensores de movimiento para iluminación en horario nocturno.")
-    elif 8 <= hora_dia <= 18:
+    elif 8 <= hora_dia <= 18:  # Horario laboral
         recommendations.append("Establecer temperatura óptima de climatización según ocupación actual.")
     
-    density = ocupacion / area * 100
+    # Recomendaciones basadas en densidad de ocupación
+    density = ocupacion / area * 100 if area > 0 else 0
     if density < 1:
         recommendations.append("Centralizar actividades en áreas específicas para reducir consumo en zonas desocupadas.")
     elif density > 3:
         recommendations.append("Mejorar la ventilación natural para reducir dependencia de sistemas de climatización.")
     
+    # Recomendación general
     recommendations.append("Realizar mantenimiento preventivo de equipos eléctricos para asegurar su eficiencia.")
-    return recommendations[:3]
+    
+    return recommendations[:3]  # Devuelve máximo 3 recomendaciones
