@@ -46,7 +46,7 @@
                                 <h5 class="mb-0">Nuevo Registro</h5>
                             </div>
                             <div class="card-body">
-                                <form method="POST" action="{{ url_for('data_management') }}">
+                                <form method="POST" action="{{ url_for('data.manage') }}">
                                     {{ manual_form.hidden_tag() }}
                                     
                                     <div class="mb-3">
@@ -116,7 +116,7 @@
                             <div class="card-header bg-primary text-white">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">Últimos registros</h5>
-                                    <a href="{{ url_for('export_energy_data') }}" class="btn btn-sm btn-light">
+                                    <a href="{{ url_for('data.export') }}" class="btn btn-sm btn-light">
                                         <i class="bi bi-download"></i> Exportar datos
                                     </a>
                                 </div>
@@ -175,7 +175,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="d-grid">
-                                            <form method="POST" action="{{ url_for('retrain_model') }}" style="display: inline;">
+                                            <form method="POST" action="{{ url_for('data.retrain') }}" style="display: inline;">
                                                 <button type="submit" class="btn btn-primary">
                                                     <i class="bi bi-arrow-repeat"></i> Reentrenar modelo
                                                 </button>
@@ -184,7 +184,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="d-grid">
-                                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-secondary">
+                                            <a href="{{ url_for('data.export') }}" class="btn btn-secondary">
                                                 <i class="bi bi-file-earmark-arrow-down"></i> Exportar datos
                                             </a>
                                         </div>
@@ -206,7 +206,7 @@
                             </div>
                             <div class="card-body">
                                 <p>Importe datos de consumo energético desde un archivo CSV:</p>
-                                <form method="POST" action="{{ url_for('upload_energy_data') }}" enctype="multipart/form-data">
+                                <form method="POST" action="{{ url_for('data.upload') }}" enctype="multipart/form-data">
                                     <div class="mb-3">
                                         <label for="file" class="form-label">Archivo CSV</label>
                                         <input type="file" class="form-control" id="file" name="file" required>
@@ -313,7 +313,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="d-grid">
-                                            <form method="POST" action="{{ url_for('retrain_model') }}" style="display: inline;" onsubmit="return confirm('¿Está seguro de que desea reentrenar el modelo con todos los datos disponibles?')">
+                                            <form method="POST" action="{{ url_for('data.retrain') }}" style="display: inline;" onsubmit="return confirm('¿Está seguro de que desea reentrenar el modelo con todos los datos disponibles?')">
                                                 <button type="submit" class="btn btn-primary">
                                                     <i class="bi bi-arrow-repeat"></i> Reentrenar modelo
                                                 </button>
@@ -322,7 +322,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="d-grid">
-                                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-secondary">
+                                            <a href="{{ url_for('data.export') }}" class="btn btn-secondary">
                                                 <i class="bi bi-file-earmark-arrow-down"></i> Exportar datos
                                             </a>
                                         </div>
@@ -340,7 +340,7 @@
                     <div class="card-header bg-primary text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">Todos los registros</h5>
-                            <a href="{{ url_for('export_energy_data') }}" class="btn btn-sm btn-light">
+                            <a href="{{ url_for('data.export') }}" class="btn btn-sm btn-light">
                                 <i class="bi bi-download"></i> Exportar todos
                             </a>
                         </div>
@@ -361,7 +361,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6 text-md-end">
-                                    <button class="btn btn-danger" onclick="if(confirm('¿Está seguro que desea eliminar todos los registros? Esta acción no se puede deshacer.')) { window.location.href='{{ url_for('delete_all_energy_data') }}'; }">
+                                    <button class="btn btn-danger" onclick="if(confirm('¿Está seguro que desea eliminar todos los registros? Esta acción no se puede deshacer.')) { window.location.href='{{ url_for('data.delete_all') }}'; }">
                                         <i class="bi bi-trash"></i> Eliminar todos los registros
                                     </button>
                                 </div>

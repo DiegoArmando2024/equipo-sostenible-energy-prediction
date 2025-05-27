@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Página no encontrada - Sistema Predictivo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="mb-4">
+            <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+        </div>
+        
+        <h1 class="display-4 mb-3">404</h1>
+        <h2 class="mb-4">Página no encontrada</h2>
+        
+        <p class="lead mb-4">
+            Lo sentimos, la página que buscas no existe o ha sido movida.
+        </p>
+        
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                <i class="bi bi-house"></i> Ir al Dashboard
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver atrás
+            </a>
+        </div>
+        
+        <div class="mt-5">
+            <p class="text-muted">
+                Si crees que esto es un error, por favor contacta al administrador del sistema.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

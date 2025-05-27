@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Determinar en qué página nos encontramos para inicializar las gráficas correspondientes
     const currentPath = window.location.pathname;
     
-    if (currentPath === '/dashboard') {
+    if (currentPath === '/' || currentPath === '/dashboard') {
         initDashboardCharts();
     } else if (currentPath === '/buildings/dashboard' || currentPath.includes('/building_dashboard')) {
         initBuildingDashboardCharts();
@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
  * Inicializa las gráficas para el dashboard principal
  */
 function initDashboardCharts() {
-    // Intentar cargar datos de la API
-    fetch('/api/data')
+    // Intentar cargar datos de la API corregida
+    fetch('/api/consumption-data')
         .then(handleResponse)
         .then(data => {
             if (!data) {
@@ -55,7 +55,12 @@ function initDashboardCharts() {
  * Inicializa las gráficas para el dashboard de edificios
  */
 function initBuildingDashboardCharts() {
-    // Intentar cargar datos de edificios desde la API
+    // Por ahora usar datos predeterminados hasta que existan las APIs
+    console.log('Inicializando dashboard de edificios con datos predeterminados');
+    createDefaultBuildingCharts();
+    
+    // TODO: Implementar cuando existan las APIs reales
+    /*
     Promise.all([
         fetchWithErrorHandling('/api/buildings/consumption', createBuildingConsumptionChart),
         fetchWithErrorHandling('/api/buildings/occupancy', createOccupancyChart),
@@ -63,6 +68,7 @@ function initBuildingDashboardCharts() {
     ]).catch(error => {
         console.error('Error al inicializar dashboard de edificios:', error);
     });
+    */
 }
 
 /**
@@ -161,6 +167,40 @@ function createDefaultDashboardCharts() {
     createDailyChart(dailyData);
     createBuildingChart(buildingData);
     createTrendChart();
+}
+
+/**
+ * Función para crear gráficas predeterminadas de edificios
+ */
+function createDefaultBuildingCharts() {
+    const buildingData = {
+        buildings: ['Biblioteca', 'Administrativo', 'Ingeniería', 'Cafetería'],
+        consumption: [120, 85, 150, 45],
+        occupancy: [80, 60, 120, 30]
+    };
+    
+    // Crear las gráficas si los elementos existen
+    if (document.getElementById('buildingConsumptionChart')) {
+        createBuildingConsumptionChart(buildingData);
+    }
+    if (document.getElementById('occupancyChart')) {
+        createOccupancyChart(buildingData);
+    }
+    if (document.getElementById('predictionHistoryChart')) {
+        createPredictionHistoryChart({
+            dates: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'],
+            datasets: [
+                {
+                    label: 'Biblioteca',
+                    data: [120, 115, 125, 118, 122]
+                },
+                {
+                    label: 'Administrativo', 
+                    data: [85, 88, 82, 90, 87]
+                }
+            ]
+        });
+    }
 }
 
 // ==================================================
