@@ -154,9 +154,10 @@ def register_commands(app):
                 db.session.add(admin)
                 db.session.commit()
                 print("Usuario administrador creado con éxito.")
-                
 
+# ✅ LÍNEA CLAVE AGREGADA: Crear la instancia global de la aplicación
+# Esta línea es FUNDAMENTAL para que wsgi.py pueda importar 'app'
+app = create_app()
 
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True)
