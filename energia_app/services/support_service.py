@@ -289,7 +289,7 @@ class SupportService:
         ).all()
         
         for msg in unread_messages:
-            msg.mark_as_read()
+            msg.is_read = True
         
         if unread_messages:
             db.session.commit()
@@ -308,7 +308,7 @@ class SupportService:
         """
         return ChatMessage.query.filter(
             ChatMessage.receiver_id == user_id,
-            ChatMessage.read_at.is_(None)
+            ChatMessage.is_read == False
         ).count()
     
     def _notify_admins_new_ticket(self, ticket):

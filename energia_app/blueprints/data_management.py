@@ -1,5 +1,5 @@
 # energia_app/blueprints/data_management.py
-from flask import Blueprint, render_template, flash, redirect, url_for, request, send_from_directory, Response
+from flask import Blueprint, render_template, flash, redirect, url_for, request, send_from_directory, Response, current_app
 from flask_login import login_required, current_user
 import os
 import io
