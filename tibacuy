@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Cultural Tibacuy - Infografía Profesional Detallada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        /* Estilos personalizados y paleta de colores */
+        :root {
+            --color-laravel-red: #FF2D20;
+            --color-laravel-orange: #F97316;
+            --color-success: #2ECC71;
+            --color-warning: #E74C3C;
+            --color-info: #3498DB;
+            --color-dark: #2D3748;
+            --color-light: #F8F9FA;
+            --color-muted-text: #555e6f; /* Texto un poco más suave para descripciones */
+            /* Colores para diagramas (profesionales) */
+            --diagram-node-bg: var(--color-info);
+            --diagram-node-text: white;
+            --diagram-edge-stroke: var(--color-muted-text);
+            --diagram-backend-bg: var(--color-laravel-red);
+            --diagram-db-bg: var(--color-success);
+            --diagram-services-bg: var(--color-laravel-orange);
+            --diagram-user-bg: #E0E0E0; /* Un gris claro para el usuario */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-light);
+            color: var(--color-dark);
+            scroll-behavior: smooth;
+        }
+        .laravel-gradient {
+            background: linear-gradient(135deg, var(--color-laravel-red) 0%, var(--color-laravel-orange) 100%);
+        }
+        .section-title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1rem; /* mb-4 */
+            color: var(--color-dark);
+            text-align: center;
+        }
+        .section-subtitle { /* Nueva clase para subtítulos explicativos */
+            font-size: 1.125rem; /* text-lg */
+            color: var(--color-muted-text);
+            text-align: center;
+            margin-bottom: 2.5rem; /* mb-10 */
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--color-laravel-orange);
+            margin: 0.75rem auto 0; /* Ajuste de margen */
+            border-radius: 2px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Sombra más sutil */
+            padding: 1.75rem; /* p-7, un poco más de padding */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden; /* Para evitar que elementos internos desborden bordes redondeados */
+        }
+        .card:hover {
+            transform: translateY(-6px); /* Un poco más de elevación */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+        }
+        .interactive-terminal {
+            background-color: #1E1E1E;
+            color: #D4D4D4;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace; /* Mejores fuentes monoespaciadas */
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre;
+            border: 1px solid #333; /* Borde sutil */
+        }
+        .interactive-terminal .prompt { color: #6A9955; } /* Verde más estándar para prompt */
+        .interactive-terminal .command { color: #569CD6; } /* Azul para comandos */
+        .interactive-terminal .comment { color: #608B4E; } /* Verde oscuro para comentarios */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: max-content;
+            max-width: 280px; /* Un poco más ancho */
+            background-color: var(--color-dark);
+            color: #fff;
+            text-align: left; /* Mejor para explicaciones más largas */
+            border-radius: 6px;
+            padding: 10px; /* Más padding */
+            position: absolute;
+            z-index: 100; /* Asegurar que esté por encima de otros elementos */
+            bottom: 130%; /* Un poco más arriba */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease; /* Transición suave */
+            font-size: 0.875rem;
+            line-height: 1.5; /* Mejor interlineado */
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e9ecef; /* Color de fondo más claro */
+            border-radius: 0.375rem; /* rounded-md */
+            overflow: hidden;
+            height: 1.75rem; /* Un poco más alto */
+        }
+        .progress-bar {
+            height: 1.75rem;
+            line-height: 1.75rem;
+            text-align: center;
+            color: white;
+            font-weight: 600; /* semibold */
+            background-color: var(--color-success);
+            width: 0%;
+            transition: width 0.6s ease-in-out; /* Transición más suave */
+        }
+        .wizard-step { display: none; }
+        .wizard-step.active { display: block; animation: fadeIn 0.5s ease; } /* Animación de entrada */
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        pre code.hljs {
+            display: block;
+            overflow-x: auto;
+            padding: 1.25em; /* Más padding */
+            background: #282c34;
+            border-radius: 0.5rem;
+            font-size: 0.875em; /* Ligeramente más pequeño para encajar mejor */
+            line-height: 1.6;
+        }
+        .header-logo-container { /* Contenedor para logos en el header */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* Espacio entre logos */
+            margin-bottom: 1.5rem;
+        }
+        .header-logo {
+            max-height: 70px; /* Altura máxima para los logos */
+            width: auto;
+        }
+         .header-logo.main-logo { /* Logo principal del proyecto */
+            max-height: 80px;
+        }
+
+        .diagram-svg {
+            width: 100%;
+            max-width: 750px; /* Diagramas un poco más anchos */
+            margin: 1.5rem auto; 
+            display: block;
+            border: 1px solid #dee2e6; 
+            border-radius: 0.75rem; /* Bordes más redondeados */
+            background-color: #fdfdfd; 
+            padding: 10px;
+        }
+        .diagram-svg text, .diagram-svg .tech-list li, .diagram-svg .tech-list .font-semibold { /* Aplicar Inter a todo el texto SVG */
+            font-family: 'Inter', sans-serif;
+        }
+        .diagram-svg .diagram-title {
+            font-size: 16px;
+            font-weight: 600;
+            text-anchor: middle;
+            fill: var(--color-dark);
+        }
+        .diagram-svg .node rect, .diagram-svg .node circle, .diagram-svg .node ellipse {
+            stroke: #4A5568; /* Un gris más oscuro para bordes de nodos */
+            stroke-width: 1.5;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.12));
+        }
+        .diagram-svg .node text.node-label { /* Texto dentro de los nodos */
+            fill: var(--diagram-node-text);
+            text-anchor: middle;
+            dominant-baseline: central; 
+            font-weight: 500;
+            font-size: 11px;
+        }
+         .diagram-svg .node text.node-icon { /* Para iconos FontAwesome en nodos */
+            font-family: "Font Awesome 6 Free"; /* Asegurar que use la fuente de iconos */
+            font-weight: 900; /* Necesario para FA solid icons */
+            font-size: 18px;
+        }
+        .diagram-svg .node .tech-list {
+            font-size: 9px;
+            fill: var(--color-muted-text);
+        }
+        .diagram-svg .node .tech-list .font-semibold {
+            font-weight: 600;
+            fill: var(--color-dark);
+        }
+        .diagram-svg .edge path {
+            stroke: var(--diagram-edge-stroke);
+            stroke-width: 2;
+            fill: none;
+        }
+         .diagram-svg .edge text.edge-label {
+            fill: var(--color-dark);
+            text-anchor: middle;
+            font-size: 9px;
+            paint-order: stroke; 
+            stroke: white;
+            stroke-width: 3px; /* Más borde para legibilidad */
+            stroke-linejoin: round;
+            font-weight: 500;
+        }
+        .diagram-svg .arrowhead {
+             fill: var(--diagram-edge-stroke);
+        }
+        /* Estilos para acordeones mejorados */
+        .accordion-button {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.25rem; /* py-4 px-5 */
+            background-color: #f8f9fa; /* bg-gray-50 */
+            border-bottom: 1px solid #dee2e6; /* border-gray-200 */
+            font-weight: 600; /* font-semibold */
+            color: var(--color-dark);
+            transition: background-color 0.2s ease;
+        }
+        .accordion-button:hover {
+            background-color: #e9ecef; /* bg-gray-100 */
+        }
+        .accordion-content {
+            padding: 1.25rem; /* p-5 */
+            border-bottom: 1px solid #dee2e6;
+            background-color: white;
+        }
+        .accordion-button i {
+            transition: transform 0.3s ease;
+        }
+        .accordion-button[aria-expanded="true"] i {
+            transform: rotate(180deg);
+        }
+        /* Estilo para el mensaje de copiado */
+        #copy-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--color-dark);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none; /* Para que no interfiera con clics */
+        }
+        #copy-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"> </head>
+<body class="bg-gray-100" x-data="{ activeTab: 'arquitectura' }"> <header class="laravel-gradient text-white py-10 px-4 shadow-xl"> <div class="container mx-auto text-center">
+            <div class="header-logo-container">
+                <img src="http://www.tibacuy-cundinamarca.gov.co/sites/tibacuycundinamarca/content/files/000910/45457_logo-vertical-perfil-tibacuy-2024_200x200.png" alt="Logo Alcaldía de Tibacuy" class="header-logo" onerror="this.onerror=null;this.src='https://placehold.co/150x60/FFFFFF/FF2D20?text=Alcald%C3%ADa+Tibacuy';this.alt='Logo Alcaldía de Tibacuy Placeholder';">
+                <img src="https://raw.githubusercontent.com/nicoRincon/CulturaTibacuy/main/public/images/logo_tibacuy.png" alt="Logo Cultura Tibacuy" class="header-logo main-logo" onerror="this.onerror=null;this.src='https://placehold.co/180x70/FFFFFF/FF2D20?text=CULTURA+TIBACUY';this.alt='Logo Cultura Tibacuy Placeholder';">
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">Plataforma Cultural Tibacuy</h1>
+            <p class="text-xl md:text-2xl opacity-90">Una Solución Integral para la Gestión Cultural Inteligente</p>
+            <p class="text-md mt-2 opacity-80">Proyecto Final de Ingeniería de Software II - Universidad de Cundinamarca</p>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-md sticky top-0 z-50 mb-10"> <div class="container mx-auto px-4">
+            <div class="flex justify-center space-x-1 sm:space-x-2 md:space-x-4 py-3 overflow-x-auto">
+                <button @click="activeTab = 'arquitectura'; document.getElementById('arquitectura').scrollIntoView();" :class="{ 'border-laravel-orange text-laravel-orange': activeTab === 'arquitectura', 'border-transparent text-gray-600 hover:text-laravel-orange hover:border-laravel-orange': activeTab !== 'arquitectura' }" class="py-3 px-2 md:px-4 font-semibold border-b-4 focus:outline-none whitespace-nowrap text-sm sm:text-base">
+                    <i class="fas fa-sitemap mr-1 sm:mr-2"></i>Arquitectura
+                </button>
+                <button @click="activeTab = 'componentes'; document.getElementById('componentes').scrollIntoView();" :class="{ 'border-laravel-orange text-laravel-orange': activeTab === 'componentes', 'border-transparent text-gray-600 hover:text-laravel-orange hover:border-laravel-orange': activeTab !== 'componentes' }" class="py-3 px-2 md:px-4 font-semibold border-b-4 focus:outline-none whitespace-nowrap text-sm sm:text-base">
+                    <i class="fas fa-cogs mr-1 sm:mr-2"></i>Componentes
+                </button>
+                <button @click="activeTab = 'instalacion'; document.getElementById('instalacion').scrollIntoView();" :class="{ 'border-laravel-orange text-laravel-orange': activeTab === 'instalacion', 'border-transparent text-gray-600 hover:text-laravel-orange hover:border-laravel-orange': activeTab !== 'instalacion' }" class="py-3 px-2 md:px-4 font-semibold border-b-4 focus:outline-none whitespace-nowrap text-sm sm:text-base">
+                    <i class="fas fa-tasks mr-1 sm:mr-2"></i>Instalación
+                </button>
+                <button @click="activeTab = 'especiales'; document.getElementById('especiales').scrollIntoView();" :class="{ 'border-laravel-orange text-laravel-orange': activeTab === 'especiales', 'border-transparent text-gray-600 hover:text-laravel-orange hover:border-laravel-orange': activeTab !== 'especiales' }" class="py-3 px-2 md:px-4 font-semibold border-b-4 focus:outline-none whitespace-nowrap text-sm sm:text-base">
+                    <i class="fas fa-star mr-1 sm:mr-2"></i>Especiales
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-6"> <section x-show="activeTab === 'arquitectura'" id="arquitectura" class="mb-16">
+            <h2 class="section-title">1. Arquitectura del Sistema</h2>
+            <p class="section-subtitle">
+                La plataforma se ha diseñado con una arquitectura moderna y escalable, separando responsabilidades para facilitar el mantenimiento y la evolución futura. Se prioriza la robustez del backend con Laravel y la agilidad del frontend con Vite.
+            </p>
+            <div class="card">
+                <h3 class="text-2xl font-semibold mb-6 text-center text-laravel-red">Diagrama de Flujo Tecnológico</h3>
+                <svg class="diagram-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <title>Diagrama de Arquitectura Detallado</title>
+                    <defs>
+                        <marker id="arrow-arch" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto" class="arrowhead">
+                            <path d="M0,-4L10,0L0,4"></path>
+                        </marker>
+                    </defs>
+                    <text x="400" y="30" class="diagram-title">Arquitectura General de la Plataforma Cultural Tibacuy</text>
+                
+                    <g transform="translate(50, 280)">
+                        <ellipse cx="50" cy="40" rx="50" ry="30" fill="var(--diagram-user-bg)" />
+                        <text x="50" y="40" class="node-icon">&#xf007;</text> <text x="50" y="85" text-anchor="middle" font-weight="600" font-size="12px">Usuario Final</text>
+                        <text x="50" y="100" text-anchor="middle" font-size="10px">(Navegador Web)</text>
+                    </g>
+                
+                    <g transform="translate(200, 100)">
+                        <rect x="0" y="0" width="180" height="200" rx="10" fill="var(--diagram-node-bg)"/>
+                        <text x="90" y="25" class="node-label">Frontend (Cliente)</text>
+                        <text x="90" y="50" class="node-icon" fill="var(--diagram-node-text)">&#xf108;</text> <foreignObject x="15" y="75" width="150" height="110">
+                            <ul xmlns="http://www.w3.org/1999/xhtml" class="tech-list list-none p-1">
+                                <li class="font-semibold mb-1">Tecnologías:</li>
+                                <li><i class="fab fa-vuejs mr-1 text-green-500"></i>Vite (Build Tool)</li>
+                                <li><i class="fab fa-css3-alt mr-1 text-blue-500"></i>TailwindCSS</li>
+                                <li><i class="fab fa-bootstrap mr-1 text-purple-500"></i>Bootstrap (UI)</li>
+                                <li><i class="fas fa-exchange-alt mr-1 text-orange-500"></i>Axios (HTTP)</li>
+                                <li><i class="fab fa-js-square mr-1 text-yellow-400"></i>Alpine.js</li>
+                            </ul>
+                        </foreignObject>
+                    </g>
+                
+                    <g transform="translate(450, 100)">
+                        <rect x="0" y="0" width="180" height="200" rx="10" fill="var(--diagram-backend-bg)"/>
+                        <text x="90" y="25" class="node-label">Backend (Servidor)</text>
+                        <text x="90" y="50" class="node-icon" fill="var(--diagram-node-text)">&#xf233;</text> <foreignObject x="15" y="75" width="150" height="110">
+                             <ul xmlns="http://www.w3.org/1999/xhtml" class="tech-list list-none p-1">
+                                <li class="font-semibold mb-1" style="color:white;">Tecnologías:</li>
+                                <li style="color:white;"><i class="fab fa-laravel mr-1"></i>Laravel 12</li>
+                                <li style="color:white;"><i class="fab fa-php mr-1"></i>PHP 8.2</li>
+                                <li style="color:white;"><i class="fas fa-key mr-1"></i>Sanctum (Auth)</li>
+                                <li style="color:white;"><i class="fas fa-users-cog mr-1"></i>Spatie Permissions</li>
+                            </ul>
+                        </foreignObject>
+                    </g>
+                
+                    <g transform="translate(200, 400)">
+                        <rect x="0" y="0" width="180" height="120" rx="10" fill="var(--diagram-db-bg)"/>
+                        <text x="90" y="25" class="node-label">Base de Datos</text>
+                        <text x="90" y="55" class="node-icon" fill="var(--diagram-node-text)">&#xf1c0;</text> <foreignObject x="15" y="75" width="150" height="40">
+                            <ul xmlns="http://www.w3.org/1999/xhtml" class="tech-list list-none p-1">
+                                <li class="font-semibold" style="color:white;">Tecnología: MySQL</li>
+                                <li style="color:white;">(ORM: Eloquent)</li>
+                            </ul>
+                        </foreignObject>
+                    </g>
+                
+                    <g transform="translate(450, 400)">
+                        <rect x="0" y="0" width="180" height="120" rx="10" fill="var(--diagram-services-bg)"/>
+                        <text x="90" y="25" class="node-label">Servicio de PDFs</text>
+                         <text x="90" y="55" class="node-icon" fill="var(--diagram-node-text)">&#xf1c1;</text> <foreignObject x="15" y="75" width="150" height="40">
+                             <ul xmlns="http://www.w3.org/1999/xhtml" class="tech-list list-none p-1">
+                                <li class="font-semibold" style="color:white;">Librería:</li>
+                                <li style="color:white;">laravel-dompdf</li>
+                            </ul>
+                        </foreignObject>
+                    </g>
+                    
+                    <path class="edge" d="M 100 290 Q 150 200, 200 190" marker-end="url(#arrow-arch)" />
+                    <text x="145" y="240" class="edge-label">Interacción UI</text>
+                
+                    <path class="edge" d="M 290 100 Q 370 100, 370 100 L 450 150" marker-end="url(#arrow-arch)" />
+                    <text x="370" y="90" class="edge-label">Peticiones API (HTTPS/JSON)</text>
+                    
+                    <path class="edge" d="M 450 210 Q 370 300, 370 300 L 290 400" marker-end="url(#arrow-arch)" />
+                    <text x="370" y="310" class="edge-label">Consultas BD</text>
+
+                    <path class="edge" d="M 540 300 V 400" marker-end="url(#arrow-arch)" />
+                    <text x="565" y="350" class="edge-label">Generar PDF</text>
+
+                     <path class="edge" d="M 200 180 Q 150 250, 100 310" marker-end="url(#arrow-arch)" />
+                    <text x="145" y="270" class="edge-label">Respuesta Visual</text>
+                </svg>
+                <p class="text-sm text-center text-gray-600 mt-3">
+                    <i class="fas fa-info-circle mr-1 text-blue-500"></i>Este diagrama ilustra el flujo principal de interacciones entre los componentes clave del sistema.
+                </p>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+                    <div class="border-l-4 border-blue-500 p-5 bg-blue-50 rounded-r-lg shadow-sm">
+                        <h4 class="font-semibold text-lg text-blue-700 mb-2"><i class="fas fa-desktop mr-2"></i>Frontend Dinámico</h4>
+                        <p class="text-sm text-gray-700">Construido con Vite para un desarrollo rápido y optimizado. TailwindCSS provee un diseño moderno y responsivo, mientras que Axios maneja la comunicación con el backend de forma eficiente. Alpine.js añade interactividad sin la complejidad de un framework pesado.</p>
+                    </div>
+                    <div class="border-l-4 border-red-500 p-5 bg-red-50 rounded-r-lg shadow-sm">
+                        <h4 class="font-semibold text-lg text-red-700 mb-2"><i class="fas fa-server mr-2"></i>Backend Robusto</h4>
+                        <p class="text-sm text-gray-700">Laravel 12 y PHP 8.2 forman el núcleo, ofreciendo un entorno seguro, escalable y fácil de mantener. Sigue el patrón MVC para una organización clara del código y utiliza Eloquent ORM para una interacción fluida con la base de datos.</p>
+                    </div>
+                    <div class="border-l-4 border-green-500 p-5 bg-green-50 rounded-r-lg shadow-sm">
+                        <h4 class="font-semibold text-lg text-green-700 mb-2"><i class="fas fa-database mr-2"></i>Base de Datos Relacional</h4>
+                        <p class="text-sm text-gray-700">MySQL almacena toda la información de manera estructurada. Las migraciones de Laravel permiten versionar el esquema de la base de datos, facilitando cambios y colaboraciones.</p>
+                    </div>
+                    <div class="border-l-4 border-yellow-500 p-5 bg-yellow-50 rounded-r-lg shadow-sm">
+                        <h4 class="font-semibold text-lg text-yellow-700 mb-2"><i class="fas fa-shield-alt mr-2"></i>Seguridad Integral</h4>
+                        <p class="text-sm text-gray-700">Laravel Sanctum gestiona la autenticación para SPAs y APIs mediante tokens. Spatie/laravel-permission permite un control granular de roles y permisos, asegurando que cada usuario acceda solo a la información pertinente.</p>
+                    </div>
+                    <div class="border-l-4 border-purple-500 p-5 bg-purple-50 rounded-r-lg shadow-sm">
+                        <h4 class="font-semibold text-lg text-purple-700 mb-2"><i class="fas fa-file-pdf mr-2"></i>Reportes en PDF</h4>
+                        <p class="text-sm text-gray-700">La integración con laravel-dompdf facilita la generación de documentos PDF dinámicamente a partir de vistas HTML, esencial para informes y certificados.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section x-show="activeTab === 'componentes'" id="componentes" class="mb-16">
+            <h2 class="section-title">2. Componentes Clave del Sistema</h2>
+            <p class="section-subtitle">
+                El sistema se organiza en módulos interconectados que cubren todas las funcionalidades necesarias para la gestión cultural, desde la administración de usuarios hasta la generación de informes detallados.
+            </p>
+            <div class="card mb-10">
+                <h3 class="text-xl font-semibold mb-6 text-center text-laravel-red">Módulos Principales y Funcionalidades</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-8 text-center">
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-users fa-3x text-blue-600 mb-3"></i>
+                        <p class="font-medium text-gray-800">Gestión de Usuarios</p>
+                        <p class="text-xs text-gray-600">(CRUD completo, roles)</p>
+                    </div>
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-book-open fa-3x text-green-600 mb-3"></i>
+                        <p class="font-medium text-gray-800">Gestión de Cursos</p>
+                        <p class="text-xs text-gray-600">(Relación con programas)</p>
+                    </div>
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-user-check fa-3x text-yellow-600 mb-3"></i>
+                        <p class="font-medium text-gray-800">Gestión de Inscripciones</p>
+                        <p class="text-xs text-gray-600">(Proceso completo)</p>
+                    </div>
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-clipboard-check fa-3x text-purple-600 mb-3"></i>
+                        <p class="font-medium text-gray-800">Gestión de Evaluaciones</p>
+                        <p class="text-xs text-gray-600">(Flujo de calificación)</p>
+                    </div>
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-graduation-cap fa-3x text-indigo-600 mb-3"></i>
+                        <p class="font-medium text-gray-800">Programas de Formación</p>
+                        <p class="text-xs text-gray-600">(Agrupación de cursos)</p>
+                    </div>
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-school fa-3x text-pink-600 mb-3"></i>
+                        <p class="font-medium text-gray-800">Gestión de Escuelas</p>
+                        <p class="text-xs text-gray-600">(Entidades formativas)</p>
+                    </div>
+                    <div class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-file-invoice-dollar fa-3x text-teal-600 mb-3"></i> <p class="font-medium text-gray-800">Generación de Informes</p>
+                        <p class="text-xs text-gray-600">(Exportación a PDF)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-4 text-laravel-red">Diagrama de Relaciones entre Modelos</h3>
+                    <p class="text-gray-700 mb-4 text-sm">
+                        Este diagrama simplificado muestra cómo las principales entidades de datos (Modelos en Laravel) se interconectan. Estas relaciones son fundamentales para mantener la integridad de los datos y permitir consultas complejas y eficientes.
+                    </p>
+                    <svg class="diagram-svg" viewBox="0 0 550 400" xmlns="http://www.w3.org/2000/svg">
+                        <title>Diagrama de Relaciones de Modelos</title>
+                        <defs>
+                            <marker id="arrow-rel" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="6" markerHeight="6" orient="auto" class="arrowhead">
+                                <path d="M0,-4L10,0L0,4"></path>
+                            </marker>
+                            <style>
+                                .model-node rect { fill: var(--diagram-node-bg); }
+                                .model-node text { fill: var(--diagram-node-text); font-size: 10px; font-weight: 500; }
+                                .relationship-label { font-size: 9px; fill: var(--color-muted-text); font-weight: 500; }
+                            </style>
+                        </defs>
+                        <text x="275" y="25" class="diagram-title">Relaciones Principales del Modelo de Datos</text>
+                    
+                        <g class="model-node" transform="translate(50, 180)">
+                            <rect width="100" height="45" rx="5"></rect><text x="50" y="22.5" class="node-label">Usuario</text>
+                            <text x="50" y="35" class="node-icon" font-size="12px">&#xf007;</text>
+                        </g>
+                        <g class="model-node" transform="translate(220, 50)">
+                            <rect width="100" height="45" rx="5" fill="var(--diagram-db-bg)"></rect><text x="50" y="22.5" class="node-label">Programa</text>
+                             <text x="50" y="35" class="node-icon" font-size="12px">&#xf02d;</text> </g>
+                        <g class="model-node" transform="translate(220, 180)">
+                            <rect width="100" height="45" rx="5" fill="var(--diagram-db-bg)"></rect><text x="50" y="22.5" class="node-label">Curso</text>
+                            <text x="50" y="35" class="node-icon" font-size="12px">&#xf19d;</text> </g>
+                        <g class="model-node" transform="translate(220, 310)">
+                            <rect width="100" height="45" rx="5" fill="var(--diagram-db-bg)"></rect><text x="50" y="22.5" class="node-label">Escuela</text>
+                            <text x="50" y="35" class="node-icon" font-size="12px">&#xf1ad;</text> </g>
+                        <g class="model-node" transform="translate(400, 180)">
+                            <rect width="100" height="45" rx="5" fill="var(--diagram-services-bg)"></rect><text x="50" y="22.5" class="node-label">Inscripción</text>
+                            <text x="50" y="35" class="node-icon" font-size="12px">&#xf271;</text> </g>
+                        <g class="model-node" transform="translate(400, 50)">
+                            <rect width="100" height="45" rx="5" fill="var(--diagram-services-bg)"></rect><text x="50" y="22.5" class="node-label">Evaluación</text>
+                            <text x="50" y="35" class="node-icon" font-size="12px">&#xf044;</text> </g>
+                    
+                        <path class="edge" d="M 270 95 V 180" marker-end="url(#arrow-rel)" />
+                        <text x="285" y="135" class="relationship-label">1 Programa tiene N Cursos</text>
+                    
+                        <path class="edge" d="M 270 225 V 310" marker-end="url(#arrow-rel)" />
+                        <text x="285" y="265" class="relationship-label">1 Escuela tiene N Cursos</text>
+                    
+                        <path class="edge" d="M 150 202.5 H 220" marker-end="url(#arrow-rel)" />
+                        <path class="edge" d="M 320 202.5 H 400" marker-end="url(#arrow-rel)" />
+                        <text x="270" y="240" class="relationship-label">N Usuarios se inscriben en M Cursos (via Inscripción)</text>
+                    
+                        <path class="edge" d="M 450 95 V 180" marker-end="url(#arrow-rel)" />
+                        <text x="465" y="135" class="relationship-label">1 Inscripción tiene N Evaluaciones</text>
+
+                        <path class="edge" d="M 100 180 C 150 130, 200 100, 220 80" marker-end="url(#arrow-rel)" />
+                        <text x="130" y="125" class="relationship-label">1 Usuario (Docente) imparte N Programas</text>
+                    </svg>
+                    <p class="text-xs text-center text-gray-500 mt-2">Este diagrama puede ser interactivo para explorar las cardinalidades y atributos de cada modelo.</p>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-4 text-laravel-red">Ejemplo de Interacción API</h3>
+                    <p class="text-gray-700 mb-2 text-sm">
+                        A continuación, se muestra un ciclo de Petición (Request) y Respuesta (Response) para obtener la lista de cursos. Esto ilustra cómo el frontend solicita datos al backend de forma segura y estructurada.
+                    </p>
+                    <pre><code class="language-json hljs">{
+  "peticion": {
+    "metodo": "GET",
+    "url": "/api/cursos",
+    "cabeceras": {
+      "Authorization": "Bearer {token_sanctum_del_usuario}",
+      "Accept": "application/json",
+      "X-Requested-With": "XMLHttpRequest"
+    }
+  },
+  "respuesta_exitosa": {
+    "estado_http": 200,
+    "datos": [
+      { "id": 1, "nombre": "Guitarra Acústica Nivel 1", "programa_id": 1, "escuela_id": 1 },
+      { "id": 2, "nombre": "Danza Folclórica Infantil", "programa_id": 2, "escuela_id": 1 },
+      { "id": 3, "nombre": "Pintura al Óleo Avanzado", "programa_id": 3, "escuela_id": 2 }
+    ],
+    "meta": { "total_cursos": 35, "pagina_actual": 1 }
+  },
+  "respuesta_error_no_autenticado": {
+    "estado_http": 401,
+    "mensaje": "No autenticado."
+  }
+}</code></pre>
+                </div>
+            </div>
+            <div class="card mt-10">
+                <h3 class="text-xl font-semibold mb-4 text-laravel-red">Estructura de Middlewares y Rutas Protegidas</h3>
+                <p class="text-gray-700 mb-4 text-sm">
+                    Laravel utiliza "middlewares" como filtros para las peticiones HTTP entrantes. Son esenciales para la seguridad, permitiendo, por ejemplo, verificar si un usuario está autenticado o tiene los permisos necesarios antes de acceder a una ruta específica.
+                </p>
+                <pre><code class="language-php hljs">// Ejemplo conceptual de routes/api.php o routes/web.php
+
+// Rutas que requieren autenticación y un rol específico (ej. Administrador)
+Route::middleware(['auth:sanctum', 'role:administrador'])->prefix('admin')->group(function () {
+    Route::apiResource('usuarios', Admin\UsuarioController::class); // CRUD de usuarios
+    Route::post('/programas/{programa}/aprobar', [Admin\ProgramaController::class, 'approve']);
+    // ... más rutas administrativas
+});
+
+// Rutas que solo requieren autenticación básica
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/mi-perfil', [Usuario\PerfilController::class, 'show']);
+    Route::post('/cursos/{curso}/inscribirme', [Usuario\InscripcionController::class, 'store']);
+    // ... más rutas para usuarios logueados
+});
+
+// Rutas públicas (no requieren autenticación)
+Route::get('/noticias', [Publico\NoticiaController::class, 'index']);
+Route::get('/cursos-disponibles', [Publico\CursoController::class, 'index']);
+</code></pre>
+                <p class="text-gray-700 mt-4 text-sm">
+                    <i class="fas fa-shield-alt text-green-600 mr-1"></i> El middleware `auth:sanctum` asegura que el usuario haya iniciado sesión.
+                    <br>
+                    <i class="fas fa-user-tag text-blue-600 mr-1"></i> El middleware `role:administrador` (provisto por Spatie/laravel-permission) verifica que el usuario tenga el rol "administrador".
+                    <br>
+                    <i class="fas fa-folder-open text-yellow-600 mr-1"></i> El uso de `prefix('admin')` ayuda a organizar las rutas administrativas.
+                </p>
+            </div>
+        </section>
+
+        <section x-show="activeTab === 'instalacion'" id="instalacion" class="mb-16" x-data="{ currentInstallStep: 1, totalInstallSteps: 7 }">
+            <h2 class="section-title">3. Guía Visual de Instalación</h2>
+            <p class="section-subtitle">
+                Sigue estos pasos para configurar el entorno de desarrollo y poner en marcha la Plataforma Cultural Tibacuy en tu máquina local. Cada paso está diseñado para ser claro y fácil de seguir.
+            </p>
+            
+            <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-md">
+                <button @click="currentInstallStep = Math.max(1, currentInstallStep - 1)" :disabled="currentInstallStep === 1" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Anterior
+                </button>
+                <div class="text-center text-sm sm:text-base">
+                    Paso <span x-text="currentInstallStep" class="font-bold text-xl text-laravel-orange"></span> de <span x-text="totalInstallSteps" class="font-bold text-xl"></span>
+                </div>
+                <button @click="currentInstallStep = Math.min(totalInstallSteps, currentInstallStep + 1)" :disabled="currentInstallStep === totalInstallSteps" class="bg-laravel-orange hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    Siguiente<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3.5 mb-10 shadow-inner"> <div class="bg-laravel-red h-3.5 rounded-full transition-all duration-500 ease-out" :style="`width: ${(currentInstallStep / totalInstallSteps) * 100}%`"></div>
+            </div>
+
+            <div class="card">
+                <div x-show="currentInstallStep === 1" class="wizard-step active">
+                    <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fas fa-list-check mr-2"></i>Paso 1: Requisitos Previos del Sistema</h3>
+                    <p class="text-sm text-gray-600 mb-5">Antes de comenzar, asegúrate de que tu sistema cumple con los siguientes requisitos esenciales para una instalación exitosa:</p>
+                    <ul class="space-y-4" x-data="{ checks: { req1: false, req2: false, req3: false, req4: false } }">
+                        <li class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition shadow-sm">
+                            <input type="checkbox" x-model="checks.req1" id="req1" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-4 shrink-0">
+                            <label for="req1" class="text-gray-800 flex-grow"><i class="fas fa-wifi mr-2 text-blue-500"></i>Conexión a Internet Estable <span class="text-xs text-gray-500">(Necesaria para descargar dependencias)</span></label>
+                        </li>
+                        <li class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition shadow-sm">
+                            <input type="checkbox" x-model="checks.req2" id="req2" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-4 shrink-0">
+                            <label for="req2" class="text-gray-800 flex-grow"><i class="fab fa-windows mr-2 text-blue-500"></i>Sistema Operativo Windows 10/11 <span class="text-xs text-gray-500">(Guía optimizada para Windows)</span></label>
+                        </li>
+                        <li class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition shadow-sm">
+                            <input type="checkbox" x-model="checks.req3" id="req3" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-4 shrink-0">
+                            <label for="req3" class="text-gray-800 flex-grow"><i class="fas fa-user-shield mr-2 text-red-500"></i>Permisos de Administrador <span class="text-xs text-gray-500">(Para instalar software y modificar configuraciones)</span></label>
+                        </li>
+                        <li class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition shadow-sm">
+                            <input type="checkbox" x-model="checks.req4" id="req4" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-4 shrink-0">
+                            <label for="req4" class="text-gray-800 flex-grow"><i class="fas fa-hdd mr-2 text-gray-500"></i>Espacio Libre en Disco <span class="text-xs text-gray-500">(Mínimo 2GB recomendados para el proyecto y dependencias)</span></label>
+                        </li>
+                    </ul>
+                </div>
+
+                <div x-show="currentInstallStep === 2" class="wizard-step" x-data="{ activeAccordion: 'xampp' }"> <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fas fa-puzzle-piece mr-2"></i>Paso 2: Instalación de Dependencias Clave</h3>
+                    <p class="text-sm text-gray-600 mb-5">Estas herramientas son la base sobre la cual se ejecutará el proyecto. Sigue las instrucciones para cada una.</p>
+                    
+                    <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                        <button @click="activeAccordion = (activeAccordion === 'xampp' ? '' : 'xampp')" aria-expanded="false" :aria-expanded="activeAccordion === 'xampp' ? 'true' : 'false'" class="accordion-button">
+                            <span class="font-semibold text-lg text-orange-700"><i class="fas fa-server mr-2"></i>XAMPP (Servidor Web, PHP, MySQL)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div x-show="activeAccordion === 'xampp'" x-collapse class="accordion-content">
+                            <p class="text-xs text-gray-500 mb-3">XAMPP proporciona un entorno de servidor local completo, incluyendo Apache (servidor web), MySQL (base de datos) y PHP.</p>
+                            <ol class="list-decimal list-inside space-y-4 text-gray-700 text-sm">
+                                <li>Descarga XAMPP desde <a href="https://www.apachefriends.org/es/index.html" target="_blank" class="text-blue-600 hover:underline font-medium">apachefriends.org</a> <i class="fas fa-external-link-alt fa-xs ml-1"></i>. Elige la versión con PHP 8.2 o superior.</li>
+                                <li>Ejecuta el instalador. Puedes dejar las opciones por defecto.
+                                    <div class="my-2 p-3 bg-gray-100 rounded text-center text-xs text-gray-600 border border-gray-200">
+                                        <i class="fas fa-spinner fa-spin mr-1"></i> [Visual: Animación simulada de barra de progreso de instalación de XAMPP]
+                                        <div class="w-full bg-gray-300 rounded-full h-2 mt-1"><div class="bg-orange-500 h-2 rounded-full" style="width: 60%"></div></div>
+                                    </div>
+                                </li>
+                                <li>Abre el Panel de Control de XAMPP. Inicia los servicios "Apache" y "MySQL" haciendo clic en sus respectivos botones "Start". Deberían ponerse verdes.
+                                    <div class="my-2 p-3 bg-gray-100 rounded text-center text-xs text-gray-600 border border-gray-200">
+                                        <i class="fas fa-toggle-on mr-1 text-green-500"></i> [Visual: Imagen/GIF mostrando los botones Start de Apache y MySQL en verde]
+                                    </div>
+                                </li>
+                                <li>Configura `php.ini` para la extensión ZIP:
+                                    <ul class="list-disc list-inside ml-4 mt-1 text-xs">
+                                        <li>En el Panel de XAMPP, en la fila de Apache, haz clic en `Config` y selecciona `PHP (php.ini)`.</li>
+                                        <li>En el archivo que se abre, busca la línea (Ctrl+F) <code class="bg-gray-200 px-1 rounded text-red-600">;extension=zip</code>.</li>
+                                        <li>Elimina el punto y coma (<code class="bg-gray-200 px-1 rounded">;</code>) del inicio de esa línea para descomentarla: <code class="bg-gray-200 px-1 rounded text-green-600">extension=zip</code>.</li>
+                                        <li>Guarda el archivo y cierra el editor. Es posible que necesites reiniciar Apache desde el panel de XAMPP.</li>
+                                        <li class="text-blue-600"><i class="fas fa-info-circle fa-xs mr-1"></i>Esta extensión es necesaria para que Composer funcione correctamente.</li>
+                                    </ul>
+                                </li>
+                                <li>Crea la Base de Datos:
+                                     <ul class="list-disc list-inside ml-4 mt-1 text-xs">
+                                        <li>En el Panel de XAMPP, en la fila de MySQL, haz clic en `Admin`. Esto abrirá phpMyAdmin en tu navegador.</li>
+                                        <li>En phpMyAdmin, haz clic en "Nueva" (o "New") en el panel izquierdo.</li>
+                                        <li>Ingresa el nombre de la base de datos: <code class="bg-gray-200 px-1 rounded">culturatibacuy</code>.</li>
+                                        <li>Elige una codificación como `utf8mb4_unicode_ci` (suele ser la opción por defecto adecuada) y haz clic en "Crear".</li>
+                                        <li class="text-blue-600"><i class="fas fa-info-circle fa-xs mr-1"></i>Esta base de datos almacenará toda la información de la plataforma.</li>
+                                         <div class="my-2 p-3 bg-gray-100 rounded text-center text-xs text-gray-600 border border-gray-200">
+                                            <i class="fas fa-camera mr-1"></i> [Visual: Screenshot de phpMyAdmin mostrando la creación de la BD 'culturatibacuy']
+                                        </div>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                        <button @click="activeAccordion = (activeAccordion === 'composer' ? '' : 'composer')" aria-expanded="false" :aria-expanded="activeAccordion === 'composer' ? 'true' : 'false'" class="accordion-button">
+                            <span class="font-semibold text-lg text-blue-700"><i class="fas fa-box-open mr-2"></i>Composer (Gestor de Dependencias PHP)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div x-show="activeAccordion === 'composer'" x-collapse class="accordion-content">
+                            <p class="text-xs text-gray-500 mb-3">Composer maneja las librerías y paquetes de los que depende el proyecto Laravel.</p>
+                            <ol class="list-decimal list-inside space-y-3 text-gray-700 text-sm">
+                                <li>Descarga el instalador de Composer desde <a href="https://getcomposer.org/Composer-Setup.exe" target="_blank" class="text-blue-600 hover:underline font-medium">getcomposer.org</a> <i class="fas fa-external-link-alt fa-xs ml-1"></i>.</li>
+                                <li>Ejecuta `Composer-Setup.exe`. Es importante que durante la instalación, cuando te pregunte por la ruta de PHP, te asegures de que apunte al `php.exe` dentro de tu carpeta de XAMPP (ej. `C:\xampp\php\php.exe`). El instalador suele detectarlo automáticamente.</li>
+                                <li>Completa la instalación con los valores predeterminados.</li>
+                                <li>Verifica la instalación: Abre una NUEVA terminal (CMD, PowerShell o Git Bash) y escribe <code class="bg-gray-200 px-1 rounded">composer --version</code>. Deberías ver la versión de Composer.
+                                    <div class="my-2 p-2 bg-gray-100 rounded text-xs text-gray-600 border border-gray-200"><pre class="whitespace-pre-wrap">> composer --version
+Composer version 2.x.x .....</pre></div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                        <button @click="activeAccordion = (activeAccordion === 'nodejs' ? '' : 'nodejs')" aria-expanded="false" :aria-expanded="activeAccordion === 'nodejs' ? 'true' : 'false'" class="accordion-button">
+                            <span class="font-semibold text-lg text-green-700"><i class="fab fa-node-js mr-2"></i>Node.js y NPM (Entorno JavaScript y Gestor de Paquetes)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div x-show="activeAccordion === 'nodejs'" x-collapse class="accordion-content">
+                           <p class="text-xs text-gray-500 mb-3">Node.js es necesario para compilar los assets del frontend (CSS, JS) usando Vite, y NPM (Node Package Manager) gestiona las dependencias del frontend.</p>
+                           <ol class="list-decimal list-inside space-y-3 text-gray-700 text-sm">
+                                <li>Descarga la versión LTS (Long Term Support) de Node.js desde <a href="https://nodejs.org/" target="_blank" class="text-blue-600 hover:underline font-medium">nodejs.org</a> <i class="fas fa-external-link-alt fa-xs ml-1"></i>.</li>
+                                <li>Ejecuta el instalador. Puedes dejar las opciones por defecto. Asegúrate de que NPM y la adición al PATH estén seleccionados.</li>
+                                <li>Algunos instaladores de Node.js ofrecen instalar "herramientas adicionales para la compilación de módulos nativos" (como Python, Chocolatey, Visual Studio Build Tools). Si ves esta opción, es recomendable marcarla, ya que puede evitar problemas futuros con algunas dependencias de NPM.</li>
+                                <li>Si se instalan herramientas adicionales, se abrirá una ventana de PowerShell/CMD al final para completar este proceso. Espera a que termine.
+                                    <div class="my-2 p-3 bg-gray-100 rounded text-center text-xs text-gray-600 border border-gray-200">
+                                        <i class="fas fa-cog fa-spin mr-1"></i> [Visual: Animación simulada de terminal PowerShell instalando herramientas adicionales]
+                                    </div>
+                                </li>
+                                <li>Verifica la instalación: Abre una NUEVA terminal y escribe <code class="bg-gray-200 px-1 rounded">node -v</code> y luego <code class="bg-gray-200 px-1 rounded">npm -v</code>. Deberías ver sus respectivas versiones.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="currentInstallStep === 3" class="wizard-step">
+                    <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fas fa-terminal mr-2"></i>Paso 3: Configuración Adicional en PowerShell</h3>
+                    <p class="text-sm text-gray-600 mb-5">Estos comandos preparan tu entorno de PowerShell y PHP para Laravel. Ejecútalos en PowerShell abierto como Administrador.</p>
+                    <div class="interactive-terminal" x-data="interactiveTerminal()">
+                        <div class="tooltip mb-3">
+                            <span @click="copyToClipboard('Set-ExecutionPolicy Bypass -Scope Process -Force;')" class="command hover:cursor-pointer hover:text-yellow-400 transition-colors">Set-ExecutionPolicy Bypass -Scope Process -Force;</span>
+                            <span class="tooltiptext"><strong>Propósito:</strong> Permite la ejecución de scripts locales (como los de instalación) en la sesión actual de PowerShell sin requerir que estén firmados digitalmente. Es una medida de seguridad que se relaja temporalmente.</span>
+                        </div>
+                        <div class="tooltip mb-3">
+                            <span @click="copyToClipboard('[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;')" class="command hover:cursor-pointer hover:text-yellow-400 transition-colors">[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;</span>
+                            <span class="tooltiptext"><strong>Propósito:</strong> Actualiza los protocolos de seguridad de red que .NET (usado por PowerShell para descargas) utiliza, asegurando la compatibilidad con TLS 1.2 y superiores. Esto es crucial para descargar herramientas de servidores modernos.</span>
+                        </div>
+                        <div class="tooltip mb-3">
+                            <span @click="copyToClipboard('iex ((New-Object System.Net.WebClient).DownloadString(\'https://php.new/install/windows/8.2\'))')" class="command hover:cursor-pointer hover:text-yellow-400 transition-colors">iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.2'))</span> <span class="tooltiptext"><strong>Propósito:</strong> Descarga y ejecuta un script que instala una versión específica de PHP (en este caso, 8.2, que es la que usa el proyecto) de forma rápida y la configura en el PATH del sistema. (Nota: Si ya tienes PHP 8.2 con XAMPP y está en el PATH, este paso podría ser opcional o necesitar ajuste).</span>
+                        </div>
+                        <div class="tooltip">
+                            <span @click="copyToClipboard('composer global require laravel/installer')" class="command hover:cursor-pointer hover:text-yellow-400 transition-colors">composer global require laravel/installer</span>
+                            <span class="tooltiptext"><strong>Propósito:</strong> Instala el "Laravel Installer" globalmente usando Composer. Esta herramienta proporciona un comando <code class="text-xs bg-gray-700 p-0.5 rounded">laravel new</code> para crear nuevos proyectos Laravel fácilmente (aunque para este proyecto clonaremos un repositorio existente).</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4"><i class="fas fa-info-circle mr-1"></i> Haz clic en un comando para copiarlo al portapapeles. Se mostrará una notificación.</p>
+                </div>
+
+                <div x-show="currentInstallStep === 4" class="wizard-step">
+                    <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fab fa-git-alt mr-2"></i>Paso 4: Clonación del Repositorio del Proyecto</h3>
+                    <p class="text-sm text-gray-600 mb-5">Ahora descargaremos el código fuente del proyecto desde su repositorio en GitHub.</p>
+                    <div class="text-center mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <i class="fab fa-github fa-3x text-gray-800"></i>
+                        <i class="fas fa-long-arrow-alt-right fa-2x text-gray-500 mx-4 animate-pulse"></i>
+                        <i class="fas fa-folder-open fa-3x text-blue-600"></i>
+                        <p class="text-xs mt-2 text-gray-600">De GitHub a tu carpeta local</p>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-4 text-gray-700 text-sm">
+                        <li>
+                            Copia la URL del repositorio:
+                            <div class="mt-1" x-data="interactiveTerminal()"><code class="bg-gray-200 p-1 rounded text-sm font-mono">https://github.com/nicoRincon/CulturaTibacuy.git</code> <button @click="copyToClipboard('https://github.com/nicoRincon/CulturaTibacuy.git')" class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"><i class="fas fa-copy"></i> Copiar</button></div>
+                        </li>
+                        <li>
+                            Abre tu terminal preferida (Git Bash es recomendado en Windows para comandos Git, pero CMD o PowerShell también funcionan si Git está en el PATH).
+                        </li>
+                        <li>
+                            Navega a la carpeta donde deseas clonar el proyecto. Comúnmente, para proyectos XAMPP, esta es <code class="bg-gray-200 p-1 rounded text-sm font-mono">C:\xampp\htdocs</code>.
+                            <pre><code class="language-bash hljs">cd C:\xampp\htdocs</code></pre>
+                        </li>
+                        <li>
+                            Ejecuta el comando `git clone` seguido de la URL copiada:
+                            <pre><code class="language-bash hljs">git clone https://github.com/nicoRincon/CulturaTibacuy.git</code></pre>
+                            Esto creará una carpeta llamada `CulturaTibacuy` con todos los archivos del proyecto.
+                        </li>
+                        <li>
+                            Ingresa a la carpeta del proyecto recién clonado:
+                            <pre><code class="language-bash hljs">cd CulturaTibacuy</code></pre>
+                        </li>
+                        <li>
+                            La estructura de carpetas resultante será la estándar de un proyecto Laravel:
+                            <pre><code class="language-plaintext hljs">CulturaTibacuy/
+  ├── app/         # Lógica principal de la aplicación
+  ├── bootstrap/   # Scripts de arranque
+  ├── config/      # Archivos de configuración
+  ├── database/    # Migraciones y seeders
+  ├── public/      # Punto de entrada, assets públicos
+  ├── resources/   # Vistas, assets sin compilar (CSS, JS)
+  ├── routes/      # Definición de rutas
+  ├── storage/     # Archivos generados, logs, cache
+  ├── tests/       # Pruebas automatizadas
+  ├── vendor/      # Dependencias de Composer
+  └── .env.example # Archivo de ejemplo para variables de entorno
+  └── composer.json # Dependencias PHP
+  └── package.json  # Dependencias Node.js</code></pre>
+                        </li>
+                    </ol>
+                </div>
+
+                <div x-show="currentInstallStep === 5" class="wizard-step">
+                    <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fas fa-cogs mr-2"></i>Paso 5: Configuración Inicial del Proyecto</h3>
+                    <p class="text-sm text-gray-600 mb-5">Una vez clonado el repositorio, necesitamos configurar el proyecto para nuestro entorno local.</p>
+                    <ol class="list-decimal list-inside space-y-6 text-gray-700 text-sm">
+                        <li>
+                            <strong>Creación del archivo `.env`</strong>: Este archivo contiene las variables de entorno específicas para tu máquina (como credenciales de base de datos).
+                            <ul class="list-disc list-inside ml-5 mt-2 space-y-1">
+                                <li>En la raíz del proyecto `CulturaTibacuy`, encontrarás un archivo llamado `.env.example`.</li>
+                                <li>Crea una copia de este archivo y renómbrala a `.env`.</li>
+                                <li>Abre el archivo `.env` con un editor de texto. Necesitarás ajustar principalmente las siguientes líneas para la conexión a la base de datos que creaste en XAMPP:
+                                    <pre class="my-2"><code class="language-ini hljs">DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=culturatibacuy  # Asegúrate que sea este nombre
+DB_USERNAME=root            # Usuario por defecto de XAMPP MySQL
+DB_PASSWORD=                # Contraseña vacía por defecto en XAMPP MySQL</code></pre>
+                                </li>
+                                <li class="text-blue-600"><i class="fas fa-info-circle fa-xs mr-1"></i>El archivo `.env` es ignorado por Git por seguridad, ya que contiene información sensible.</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>Instalación de Dependencias</strong> (ejecuta estos comandos en la terminal, dentro de la carpeta raíz del proyecto `CulturaTibacuy`):
+                            <ul class="list-disc list-inside ml-5 mt-2 space-y-3">
+                                <li>
+                                    Instalar dependencias PHP (Laravel y otras librerías):
+                                    <pre><code class="language-bash hljs">composer install</code></pre>
+                                    <div class="progress-bar-container mt-1"><div class="progress-bar" style="width: 0%;" x-intersect:enter="$el.style.width = '100%'">Instalando dependencias PHP...</div></div>
+                                    <p class="text-xs text-gray-500">Este comando lee `composer.json` y descarga todas las librerías PHP necesarias en la carpeta `vendor/`.</p>
+                                </li>
+                                <li>
+                                    Instalar dependencias JavaScript/Frontend:
+                                    <pre><code class="language-bash hljs">npm install</code></pre>
+                                    <div class="progress-bar-container mt-1"><div class="progress-bar bg-blue-600" style="width: 0%;" x-intersect:enter="$el.style.width = '100%'">Instalando dependencias Node.js...</div></div>
+                                    <p class="text-xs text-gray-500">Este comando lee `package.json` y descarga todas las librerías JavaScript necesarias en la carpeta `node_modules/`.</p>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>Generación de la Clave de Aplicación</strong>:
+                            <pre><code class="language-bash hljs">php artisan key:generate</code></pre>
+                            <p class="text-xs text-gray-500 mt-1">Laravel necesita una clave única para encriptación. Este comando la genera y la guarda en tu archivo `.env` (variable `APP_KEY`).</p>
+                        </li>
+                        <li>
+                            <strong>Configuración de Laravel Sanctum</strong> (para autenticación API):
+                            <pre><code class="language-bash hljs">php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"</code></pre>
+                            <p class="text-xs text-gray-500 mt-1">Publica los archivos de configuración de Sanctum, si aún no existen. (El comando `composer require laravel/sanctum` ya debería estar en tu `composer.json` del proyecto clonado).</p>
+                        </li>
+                        <li>
+                            <strong>Publicación de Assets de Vendor (Opcional)</strong>:
+                            <p class="text-xs text-gray-500 mt-1">Algunas librerías pueden requerir que sus assets (CSS, JS, imágenes) sean publicados en la carpeta `public`. Si es el caso, se usa un comando como: <code class="bg-gray-200 px-1 rounded text-xs">php artisan vendor:publish --tag=nombre-del-tag</code>. Consulta la documentación de las librerías específicas si es necesario.</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div x-show="currentInstallStep === 6" class="wizard-step">
+                    <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fas fa-database mr-2"></i>Paso 6: Creación de la Estructura de la Base de Datos</h3>
+                    <p class="text-sm text-gray-600 mb-5">Este paso crea las tablas en tu base de datos `culturatibacuy` según las "migraciones" definidas en el proyecto y, opcionalmente, la llena con datos iniciales ("seeders").</p>
+                    <ol class="list-decimal list-inside space-y-4 text-gray-700 text-sm">
+                        <li>
+                            <strong>Ejecutar las migraciones</strong>:
+                            <pre><code class="language-bash hljs">php artisan migrate</code></pre>
+                            <div class="my-3 p-4 bg-green-50 border border-green-300 rounded-lg text-sm text-green-700 shadow-sm">
+                                <i class="fas fa-check-circle mr-2"></i>Este comando lee los archivos de migración en la carpeta `database/migrations/` y crea la estructura de tablas correspondiente en tu base de datos.
+                                <div class="mt-2 text-xs text-gray-600">[Visual: Animación simulada de nombres de tablas (users, cursos, programas, etc.) apareciendo una tras otra]</div>
+                            </div>
+                        </li>
+                        <li>
+                            <strong>(Opcional) Refrescar la base de datos y ejecutar seeders</strong>:
+                            <pre><code class="language-bash hljs">php artisan migrate:fresh --seed</code></pre>
+                            <div class="my-3 p-4 bg-yellow-50 border border-yellow-400 rounded-lg text-sm text-yellow-700 shadow-sm">
+                                <i class="fas fa-exclamation-triangle mr-2"></i><strong>¡Cuidado!</strong> El comando `migrate:fresh` elimina TODAS las tablas existentes y las vuelve a crear. Úsalo solo en desarrollo o si estás seguro de que no perderás datos importantes.
+                                <br><i class="fas fa-seedling mr-2 mt-2"></i>La opción `--seed` ejecuta los "seeders" definidos en `database/seeders/`. Estos archivos pueblan la base de datos con datos iniciales o de prueba (ej. roles de usuario, un usuario administrador, categorías, etc.).
+                            </div>
+                            <p class="text-gray-700 mt-2 font-medium">Flujo típico de datos con seeders:</p>
+                            <p class="text-gray-600 text-xs">Creación de Roles <i class="fas fa-arrow-right mx-1"></i> Creación de Usuario Administrador <i class="fas fa-arrow-right mx-1"></i> Carga de Datos Maestros (Escuelas, Tipos de Programa, etc.)</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div x-show="currentInstallStep === 7" class="wizard-step">
+                    <h3 class="font-semibold text-xl mb-5 text-laravel-red"><i class="fas fa-play-circle mr-2"></i>Paso 7: ¡A Ejecutar el Proyecto!</h3>
+                    <p class="text-sm text-gray-600 mb-5">Con todo configurado, es hora de iniciar los servidores de desarrollo para ver la plataforma en acción.</p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-gray-800 mb-2 font-semibold text-md"><i class="fab fa-vuejs mr-1 text-green-500"></i>Terminal 1: Servidor de Desarrollo Frontend (Vite)</p>
+                            <p class="text-xs text-gray-600 mb-2">Vite compila los assets del frontend (JavaScript, CSS) y los sirve con recarga en caliente (hot-reloading) para un desarrollo ágil.</p>
+                            <div class="interactive-terminal text-xs">
+                                <span class="prompt user@machine:~/CulturaTibacuy$</span> <span class="command">npm run dev</span><br>
+                                <span class="text-green-400">> culturatibacuy@0.0.0 dev</span><br>
+                                <span class="text-green-400">> vite</span><br><br>
+                                <span class="text-gray-400">  VITE v5.x.x  ready in XXXms</span><br><br>
+                                <span class="text-gray-400">  ➜  </span><strong>Local:</strong>   <span class="text-cyan-400 underline">http://localhost:5173/</span><br>
+                                <span class="text-gray-400">  ➜  </span><strong>Network:</strong> use --host to expose<br>
+                                <span class="text-gray-400">  ➜  </span><strong>press h + enter to show help</strong>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-gray-800 mb-2 font-semibold text-md"><i class="fab fa-laravel mr-1 text-red-500"></i>Terminal 2: Servidor de Desarrollo Backend (Laravel)</p>
+                            <p class="text-xs text-gray-600 mb-2">El servidor de desarrollo de Artisan maneja las peticiones al backend de Laravel.</p>
+                            <div class="interactive-terminal text-xs">
+                                <span class="prompt user@machine:~/CulturaTibacuy$</span> <span class="command">php artisan serve</span><br><br>
+                                <span class="text-gray-400">   INFO  Server running on [</span><span class="text-cyan-400 underline">http://127.0.0.1:8000</span><span class="text-gray-400">].</span><br><br>
+                                <span class="text-gray-400">         Press Ctrl+C to stop the server</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 text-center p-6 bg-green-50 rounded-lg border border-green-200">
+                        <p class="text-gray-800 mb-3 font-semibold text-lg">¡Listo! Accede a la plataforma en tu navegador:</p>
+                        <a href="http://127.0.0.1:8000" target="_blank" class="inline-block text-xl font-bold text-green-600 hover:text-green-700 hover:underline transition-colors">
+                            http://127.0.0.1:8000 <i class="fas fa-external-link-alt fa-xs ml-1"></i>
+                        </a>
+                        <div class="mt-4">
+                            <a href="http://127.0.0.1:8000" target="_blank" class="inline-block transform hover:scale-105 transition-transform">
+                                <img src="https://placehold.co/600x350/e9f5e9/27ae60?text=Plataforma+Cultural+Tibacuy+en+Acci%C3%B3n%0A(Clic+para+abrir)" alt="Vista previa del sistema" class="border-2 border-gray-300 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                            </a>
+                        </div>
+                         <p class="text-xs text-gray-600 mt-3">Asegúrate de que ambos servidores (Vite y Artisan) estén ejecutándose.</p>
+                    </div>
+                </div>
+            </div> </section>
+
+        <section x-show="activeTab === 'especiales'" id="especiales" class="mb-16" x-data="{ troubleshootingOpen: false, verificationChecks: {php:false, composer:false, node:false, db:false} }">
+            <h2 class="section-title">4. Elementos Adicionales y Ayuda</h2>
+            <p class="section-subtitle">
+                Aquí encontrarás notas importantes, una guía de solución de problemas comunes y una lista de verificación final para asegurar que tu instalación sea un éxito.
+            </p>
+            
+            <div class="grid md:grid-cols-2 gap-10">
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-5 text-laravel-orange"><i class="fas fa-exclamation-circle mr-2"></i>Notas Importantes</h3>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 rounded-md mb-5 shadow-sm">
+                        <div class="flex">
+                            <div class="shrink-0">
+                                <i class="fas fa-keyboard fa-lg text-yellow-600 mr-3 mt-1"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-yellow-800">Cancelar Procesos en Terminal</p>
+                                <p class="text-sm text-yellow-700">Si un comando en la terminal (como `npm run dev` o `php artisan serve`) parece bloqueado o necesitas detenerlo, presiona <code class="bg-gray-200 text-yellow-900 px-1.5 py-0.5 rounded text-xs font-mono">Ctrl + C</code>.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-md shadow-sm">
+                         <div class="flex">
+                            <div class="shrink-0">
+                                <i class="fas fa-tools fa-lg text-red-600 mr-3 mt-1"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-red-800">Dependencias Críticas del Sistema</p>
+                                <p class="text-sm text-red-700">Es fundamental que XAMPP (con Apache y MySQL activos y configurados), Composer y Node.js (con NPM) estén correctamente instalados y sus ejecutables accesibles desde el PATH del sistema para que todos los comandos funcionen como se espera.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-5 text-laravel-orange"><i class="fas fa-wrench mr-2"></i>Solución de Problemas Comunes</h3>
+                    <button @click="troubleshootingOpen = !troubleshootingOpen" aria-expanded="false" :aria-expanded="troubleshootingOpen ? 'true' : 'false'" class="w-full text-left p-4 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none flex justify-between items-center transition-colors shadow-sm">
+                        <span class="font-medium">Ver Errores Frecuentes y Soluciones</span>
+                        <i class="fas" :class="{'fa-chevron-down': !troubleshootingOpen, 'fa-chevron-up': troubleshootingOpen}"></i>
+                    </button>
+                    <div x-show="troubleshootingOpen" x-collapse class="mt-4 space-y-4 text-sm">
+                        <div class="p-4 bg-red-50 rounded-md border border-red-200">
+                            <p class="font-semibold text-red-700 mb-1">Error: <code class="font-mono text-xs">Clase 'X' no encontrada</code> (Class 'X' not found)</p>
+                            <p class="text-gray-700"><strong>Causa Común:</strong> El autoloader de Composer no ha registrado la clase, a menudo después de crear una nueva clase o mover archivos.</p>
+                            <p class="text-gray-700 mt-1"><strong>Solución:</strong> Ejecuta <code class="bg-gray-200 px-1 rounded text-xs font-mono">composer dump-autoload</code> en la terminal. Verifica también que los namespaces y los nombres de archivo/clase sean correctos y coincidan (sensible a mayúsculas/minúsculas en algunos sistemas).</p>
+                            <div class="mt-2 text-xs text-gray-500">[Visual: Screenshot simulado del error en una terminal o navegador]</div>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-md border border-red-200">
+                            <p class="font-semibold text-red-700 mb-1">Error: <code class="font-mono text-xs">No input file specified.</code> (al acceder a <code class="font-mono text-xs">localhost/culturatibacuy/public</code>)</p>
+                            <p class="text-gray-700"><strong>Causa Común:</strong> Problema con la configuración del servidor web Apache (si no usas `php artisan serve`).</p>
+                            <p class="text-gray-700 mt-1"><strong>Solución:</strong> Es más sencillo y recomendado para desarrollo usar el servidor integrado de Laravel: <code class="bg-gray-200 px-1 rounded text-xs font-mono">php artisan serve</code> y acceder a <code class="bg-gray-200 px-1 rounded text-xs font-mono">http://127.0.0.1:8000</code>. Si necesitas usar Apache, verifica la configuración de tu VirtualHost y que `mod_rewrite` esté habilitado.</p>
+                        </div>
+                         <div class="p-4 bg-red-50 rounded-md border border-red-200">
+                            <p class="font-semibold text-red-700 mb-1">Error: Permisos de escritura en `storage` o `bootstrap/cache`.</p>
+                            <p class="text-gray-700"><strong>Causa Común:</strong> El servidor web no tiene permisos para escribir en estas carpetas, necesarias para logs, caché, sesiones, etc.</p>
+                            <p class="text-gray-700 mt-1"><strong>Solución (Linux/Mac):</strong> <code class="bg-gray-200 px-1 rounded text-xs font-mono">sudo chmod -R 775 storage bootstrap/cache</code> y <code class="bg-gray-200 px-1 rounded text-xs font-mono">sudo chown -R www-data:www-data storage bootstrap/cache</code> (reemplaza `www-data` con tu usuario de servidor web si es diferente). En Windows, verifica los permisos de las carpetas a través del explorador de archivos (clic derecho > Propiedades > Seguridad) y otorga control total al usuario con el que corre Apache/PHP.</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-md border border-red-200">
+                            <p class="font-semibold text-red-700 mb-1">Error: Vite no compila o da error de conexión (ej. `localhost:5173` no accesible).</p>
+                            <p class="text-gray-700"><strong>Causa Común:</strong> El servidor de Vite (`npm run dev`) no está ejecutándose, o hay un problema de firewall/proxy.</p>
+                            <p class="text-gray-700 mt-1"><strong>Solución:</strong> Asegúrate de que `npm run dev` esté activo en una terminal. Verifica que no haya errores en su salida. Revisa tu firewall. Si estás en una VM o Docker, asegúrate de que los puertos estén correctamente mapeados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-10">
+                <h3 class="text-xl font-semibold mb-5 text-laravel-orange"><i class="fas fa-clipboard-check mr-2"></i>Lista de Verificación Final</h3>
+                <p class="text-gray-700 mb-4 text-sm">Antes de dar por finalizada la instalación, comprueba estos puntos clave:</p>
+                <ul class="space-y-3">
+                    <li class="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                        <input type="checkbox" x-model="verificationChecks.php" id="verif-php" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-3 shrink-0">
+                        <label for="verif-php" class="text-gray-800 flex-grow">PHP (v8.2+) instalado y accesible en PATH: <code class="bg-gray-200 px-1 rounded text-xs font-mono">php -v</code></label>
+                    </li>
+                    <li class="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                        <input type="checkbox" x-model="verificationChecks.composer" id="verif-composer" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-3 shrink-0">
+                        <label for="verif-composer" class="text-gray-800 flex-grow">Composer (v2.x+) instalado y accesible: <code class="bg-gray-200 px-1 rounded text-xs font-mono">composer --version</code></label>
+                    </li>
+                    <li class="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                        <input type="checkbox" x-model="verificationChecks.node" id="verif-node" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-3 shrink-0">
+                        <label for="verif-node" class="text-gray-800 flex-grow">Node.js (LTS) y NPM instalados: <code class="bg-gray-200 px-1 rounded text-xs font-mono">node -v</code> y <code class="bg-gray-200 px-1 rounded text-xs font-mono">npm -v</code></label>
+                    </li>
+                    <li class="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                        <input type="checkbox" x-model="verificationChecks.db" id="verif-db" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-3 shrink-0">
+                        <label for="verif-db" class="text-gray-800 flex-grow">Base de datos <code class="bg-gray-200 px-1 rounded text-xs font-mono">culturatibacuy</code> creada en MySQL y accesible con las credenciales del archivo <code class="bg-gray-200 px-1 rounded text-xs font-mono">.env</code>.</label>
+                    </li>
+                     <li class="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                        <input type="checkbox" id="verif-env" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-3 shrink-0">
+                        <label for="verif-env" class="text-gray-800 flex-grow">Archivo <code class="bg-gray-200 px-1 rounded text-xs font-mono">.env</code> creado y configurado (especialmente `APP_KEY` y `DB_*`).</label>
+                    </li>
+                    <li class="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                        <input type="checkbox" id="verif-migrate" class="form-checkbox h-5 w-5 text-green-600 rounded border-gray-400 focus:ring-green-500 mr-3 shrink-0">
+                        <label for="verif-migrate" class="text-gray-800 flex-grow">Comando <code class="bg-gray-200 px-1 rounded text-xs font-mono">php artisan migrate</code> (o <code class="bg-gray-200 px-1 rounded text-xs font-mono">... --seed</code>) ejecutado sin errores.</label>
+                    </li>
+                </ul>
+                <div x-show="Object.values(verificationChecks).every(c => c === true) && document.getElementById('verif-env').checked && document.getElementById('verif-migrate').checked" class="mt-6 p-4 bg-green-100 text-green-800 rounded-lg text-center shadow">
+                    <i class="fas fa-party-popper fa-2x mr-2"></i><span class="font-semibold text-lg">¡Felicitaciones! Parece que todo está configurado correctamente. ¡Ya puedes ejecutar y explorar la Plataforma Cultural Tibacuy!</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-12 px-4">
+        <div class="container mx-auto text-center">
+            <img src="https://www.ucundinamarca.edu.co/images/ucundinamarca/logo_ucundinamarca_horizontal_blanco_2022.png" alt="Logo Universidad de Cundinamarca" class="mx-auto mb-6 h-16 opacity-90" onerror="this.onerror=null;this.src='https://placehold.co/250x60/9CA3AF/FFFFFF?text=Logo+UDEC';this.alt='Logo UDEC Placeholder';">
+            <p class="mb-2 text-lg font-semibold text-gray-200">Proyecto Final: Plataforma Cultural Tibacuy</p>
+            <p class="text-sm mb-1">Presentado por: Laura D. Botia, Angie T. Velásquez, Oscar G. Robayo, John S. Rodríguez, Diego A. Guzmán, Andrés F. Beltrán, Fredy N. Rincón.</p>
+            <p class="text-xs opacity-70">Asignatura: Ingeniería de Software II - Docente: Daniel Camilo Ramirez</p>
+            <p class="text-xs opacity-70">Universidad de Cundinamarca, Chía - Mayo 2025</p>
+            <div class="mt-8 space-x-5">
+                <i class="fab fa-laravel fa-2x text-laravel-red hover:opacity-80 transition-opacity" title="Laravel"></i>
+                <i class="fab fa-php fa-2x text-indigo-400 hover:opacity-80 transition-opacity" title="PHP"></i>
+                <i class="fab fa-vuejs fa-2x text-green-400 hover:opacity-80 transition-opacity" title="Vite (Vue Ecosystem)"></i>
+                <i class="fab fa-js-square fa-2x text-yellow-400 hover:opacity-80 transition-opacity" title="JavaScript"></i>
+                <i class="fas fa-database fa-2x text-orange-400 hover:opacity-80 transition-opacity" title="MySQL"></i>
+                <i class="fab fa-tailwind fa-2x text-cyan-400 hover:opacity-80 transition-opacity" title="Tailwind CSS"></i>
+            </div>
+        </div>
+    </footer>
+
+    <div id="copy-notification">Comando copiado al portapapeles</div>
+
+    <script>
+        // Inicializar Highlight.js para el resaltado de sintaxis en bloques de código
+        hljs.highlightAll();
+
+        // Lógica para la notificación de copiado y Alpine.js
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('interactiveTerminal', () => ({
+                copyToClipboard(text) {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(() => {
+                            this.showCopyNotification('Comando copiado: ' + text.substring(0,30) + '...');
+                        }).catch(err => {
+                            console.error('Error al copiar con navigator.clipboard: ', err);
+                            this.fallbackCopyToClipboard(text); // Intenta el método de fallback
+                        });
+                    } else {
+                        this.fallbackCopyToClipboard(text); // Usa el fallback si navigator.clipboard no está disponible
+                    }
+                },
+                fallbackCopyToClipboard(text) { // Método de fallback para copiar
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    // Evitar que se vea el textarea
+                    textArea.style.position = 'fixed';
+                    textArea.style.top = '-9999px';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        const successful = document.execCommand('copy');
+                        if (successful) {
+                            this.showCopyNotification('Comando copiado (fallback): ' + text.substring(0,30) + '...');
+                        } else {
+                            this.showCopyNotification('Error al copiar el comando.', true);
+                            console.error('Fallback: Error al ejecutar document.execCommand(\'copy\')');
+                        }
+                    } catch (err) {
+                        this.showCopyNotification('Error al copiar el comando.', true);
+                        console.error('Fallback: Excepción al copiar: ', err);
+                    }
+                    document.body.removeChild(textArea);
+                },
+                showCopyNotification(message, isError = false) {
+                    const notification = document.getElementById('copy-notification');
+                    if (notification) {
+                        notification.textContent = message;
+                        notification.style.backgroundColor = isError ? 'var(--color-warning)' : 'var(--color-dark)';
+                        notification.classList.add('show');
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                        }, 3000);
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

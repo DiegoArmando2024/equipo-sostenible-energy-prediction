@@ -17,9 +17,9 @@ data_bp = Blueprint('data', __name__, url_prefix='/data-management')
 @data_bp.route('/', methods=['GET', 'POST'])
 @login_required
 def manage():
-    if current_user.role != 'admin':
-        flash('No tienes permisos para acceder a esta página.')
-        return redirect(url_for('dashboard.index'))
+    #if current_user.role != 'admin':
+        #flash('No tienes permisos para acceder a esta página.')
+        #return redirect(url_for('dashboard.index'))
     
     manual_form = EnergyDataForm()
     buildings = Building.query.filter_by(active=True).all()
@@ -84,9 +84,9 @@ def manage():
 @data_bp.route('/upload', methods=['POST'])
 @login_required
 def upload():
-    if current_user.role != 'admin':
-        flash('No tienes permisos para acceder a esta funcionalidad.')
-        return redirect(url_for('dashboard.index'))
+    #if current_user.role != 'admin':
+        #flash('No tienes permisos para acceder a esta funcionalidad.')
+       # return redirect(url_for('dashboard.index'))
     
     if 'file' not in request.files:
         flash('No se ha seleccionado ningún archivo')
@@ -131,9 +131,9 @@ def upload():
 @data_bp.route('/export')
 @login_required
 def export():
-    if current_user.role != 'admin':
-        flash('No tienes permisos para acceder a esta funcionalidad.')
-        return redirect(url_for('dashboard.index'))
+    #if current_user.role != 'admin':
+       # flash('No tienes permisos para acceder a esta funcionalidad.')
+       # return redirect(url_for('dashboard.index'))
     
     energy_data = EnergyData.query.all()
     output = io.StringIO()
@@ -163,9 +163,9 @@ def export():
 @data_bp.route('/delete-all')
 @login_required
 def delete_all():
-    if current_user.role != 'admin':
-        flash('No tienes permisos para acceder a esta funcionalidad.')
-        return redirect(url_for('dashboard.index'))
+    #if current_user.role != 'admin':
+      #  flash('No tienes permisos para acceder a esta funcionalidad.')
+       # return redirect(url_for('dashboard.index'))
     
     try:
         EnergyData.query.delete()
@@ -183,9 +183,9 @@ def allowed_file(filename):
 @login_required
 def retrain():
     """Reentrenar el modelo con todos los datos disponibles"""
-    if current_user.role != 'admin':
-        flash('No tienes permisos para reentrenar el modelo.')
-        return redirect(url_for('data.manage'))
+    #if current_user.role != 'admin':
+      #  flash('No tienes permisos para reentrenar el modelo.')
+       # return redirect(url_for('data.manage'))
     
     try:
         # Obtener todos los datos de energía

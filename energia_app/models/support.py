@@ -191,6 +191,10 @@ class TicketMessage(db.Model):
 class ChatMessage(db.Model):
     __tablename__ = 'chat_messages'
     
+    def mark_as_read(self):
+        """Marca el mensaje como leído"""
+        self.is_read = True
+    
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -204,6 +208,7 @@ class ChatMessage(db.Model):
     # Relaciones
     sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_messages')
+    
     
     # Propiedades para encriptar/desencriptar automáticamente
     @property
