@@ -84,6 +84,19 @@ def configure_app(app):
     
     # Crear directorios necesarios
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    with app.app_context():
+            db.create_all()
+            # Crear usuario admin si no existe
+            if not User.query.filter_by(username='admin').first():
+                admin = User(
+                    username='admin',
+                    email='admin@example.com',
+                    role='admin'
+                )
+                admin.set_password(os.environ.get('ADMIN_PASSWORD', 'adminpassword'))
+                db.session.add(admin)
+                db.session.commit()    
+    
 
 def initialize_extensions(app):
     """Inicializar extensiones Flask"""
